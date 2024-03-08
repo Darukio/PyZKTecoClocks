@@ -1,11 +1,10 @@
 from zk import ZK
 from datetime import datetime
-import os
-logPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'service_log.txt')
 
 def conectar(ip, port):
-    zk = ZK(ip, port, timeout=5)
     try:
+        zk = ZK(ip, port, timeout=5)
+        conn = None
         print('Connecting to device...')
         conn = zk.connect()
         print('Disabling device...')
