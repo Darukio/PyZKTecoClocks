@@ -28,6 +28,10 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+w7/
+w10_w11/
+build_w7
+build_w10_w11
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
