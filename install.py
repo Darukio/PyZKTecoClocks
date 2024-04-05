@@ -1,13 +1,22 @@
 import subprocess
+import sys
+import os
+import shutil
 
-print('Checking Dependencies...')
+def install_requirements():
+    # Borrar la carpeta venv si ya existe
+    venv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv")
+    if os.path.exists(venv_path):
+        shutil.rmtree(venv_path)
 
-# Comando que quieres ejecutar en modo administrador
-comando = '''
-python -m pip install -q -r requirements.txt &
-python main.py install &
-python main.py start
-'''
+    # Crear un entorno virtual
+    subprocess.run([sys.executable, "-m", "venv", venv_path], check=True)
 
-# Ejecutar el comando en modo administrador
-subprocess.run(f'runas /user:Administrator {comando}', shell=True)
+    # Obtener la ruta al ejecutable de Python en el entorno virtual
+    venv_python = os.path.join(venv_path, "Scripts", "python.exe") if sys.platform == "win32" else os.path.join(venv_path, "bin", "python")
+
+    # Instalar dependencias desde requirements.txt usando el pip del entorno virtual
+    subprocess.run([venv_python, "-m", "pip", "install", "-r", "requirements.txt"], check=True)
+
+if __name__ == "__main__":
+    install_requirements()

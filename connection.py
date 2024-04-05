@@ -1,19 +1,36 @@
 from zk import ZK
 from datetime import datetime
+<<<<<<< HEAD
 
 def conectar(ip, port):
     try:
         zk = ZK(ip, port, timeout=5)
         conn = None
         print('Connecting to device...')
+=======
+from utils import logging
+
+def conectar(ip, port):
+    conn = None
+    try:
+        zk = ZK(ip, port, timeout=5)
+        logging.info(f'Connecting to device {ip}...')
+>>>>>>> dev
         conn = zk.connect()
-        print('Disabling device...')
+    except Exception as e:
+        logging.warning(e)
+        raise Exception(str(e))
+    finally:
+        logging.info('Disabling device...')
         conn.disable_device()
         conn.test_voice(index=10)
-    except Exception as e:
-        raise e
-    finally:
         return conn
+
+def finalizar_conexion(conn):
+    logging.info('Enabling device...')
+    conn.enable_device()
+    logging.info('Disconnecting device...')
+    conn.disconnect()
     
 def actualizar_hora(conn):
     # get current machine's time
@@ -26,10 +43,10 @@ def actualizar_hora(conn):
 def obtener_marcaciones(conn):
     attendances = []
     try:
-        print('Getting attendances...')
+        logging.info('Getting attendances...')
         attendances = conn.get_attendance()
         conn.clear_attendance()
     except Exception as e:
-        print(f'Process terminate: ', e)
+        logging.error(f'Process terminate: {e}')
     finally:
         return attendances

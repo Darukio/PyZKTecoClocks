@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import sys
 import win32serviceutil
 import pyuac
@@ -6,9 +7,17 @@ from service import MyService
 from global_variables import logPath
 
 @pyuac.main_requires_admin
+=======
+
+import sys
+import pyuac
+from icon_manager import TrayApp
+from utils import logging
+
+#@pyuac.main_requires_admin
+>>>>>>> dev
 def main():
-    with open(logPath, 'a') as logFile:
-        logFile.write('Script executing...\n')
+    logging.debug('Script executing...')
 
     logFilePath = 'console_log.txt'
 
@@ -17,13 +26,11 @@ def main():
     sys.stderr = open(logFilePath, 'a')
 
     if len(sys.argv) == 1:
-        tray_icon = create_tray_icon()
-        tray_icon.run()
-        # servicemanager.Initialize()
-        # servicemanager.PrepareToHostSingle(MyService)
-        # servicemanager.StartServiceCtrlDispatcher()
-    else:
-        win32serviceutil.HandleCommandLine(MyService)
+        try:
+            app = TrayApp()
+            app.icon.run()
+        except Exception as e:
+            logging.error(e)
 
 if __name__ == '__main__':
     main()
