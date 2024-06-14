@@ -17,10 +17,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import configparser
 from zk import ZK
 from datetime import datetime
-from utils import logging
-import configparser
+from ..utils import logging
 
 # Para leer un archivo INI
 config = configparser.ConfigParser()
@@ -28,7 +28,7 @@ config = configparser.ConfigParser()
 def conectar(ip, port):
     conn = None
     try:
-        zk = ZK(ip, port, timeout=5)
+        zk = ZK(ip, port, timeout=60)
         logging.info(f'Connecting to device {ip}...')
         conn = zk.connect()
     except Exception as e:
@@ -43,8 +43,11 @@ def conectar(ip, port):
 def finalizar_conexion(conn):
     #logging.info('Enabling device...')
     #conn.enable_device()
-    logging.info(f'{conn.get_network_params()['ip']} - Disconnecting device...')
-    conn.disconnect()
+    try:
+        logging.info(f'{conn.get_network_params()['ip']} - Disconnecting device...')
+        conn.disconnect()
+    except Exception as e:
+        raise Exception(str(e))
     
 def actualizar_hora(conn):
     # get current machine's time
@@ -52,12 +55,11 @@ def actualizar_hora(conn):
         zktime = conn.get_time()
         logging.debug(f'{conn.get_network_params()['ip']} - Date and hour device: {zktime} - Date and hour machine: {newtime}')
         validar_hora(zktime)
-    except Exception as e:
-        raise Exception(str(e))
-    finally:
         # update new time to machine
         newtime = datetime.today()
         conn.set_time(newtime)
+    except Exception as e:
+        raise Exception(str(e))
 
 def validar_hora(zktime):
     newtime = datetime.today()

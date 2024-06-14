@@ -17,15 +17,15 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from datetime import datetime
 import os
-import logging
+from datetime import datetime
+from .utils import logging
 
 class ConexionFallida(Exception):
     def __init__(self, nombreModelo, puntoMarcacion, ip):
         super().__init__()
         try:
-            from file_manager import crear_carpeta_y_devolver_ruta
+            from .file_manager import crear_carpeta_y_devolver_ruta
             # Call the function from the imported module
             folderPath = crear_carpeta_y_devolver_ruta('devices', 'errors')
             newtime = datetime.today().date()
@@ -45,7 +45,7 @@ class HoraDesactualizada(Exception):
     def __init__(self, nombreModelo, puntoMarcacion, ip):
         super().__init__()
         try:
-            from file_manager import crear_carpeta_y_devolver_ruta
+            from .file_manager import crear_carpeta_y_devolver_ruta
             # Call the function from the imported module
             folderPath = crear_carpeta_y_devolver_ruta('devices', 'errors')
             newtime = datetime.today().date()

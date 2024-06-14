@@ -18,7 +18,7 @@
 """
 
 import os
-from utils import logging
+from .utils import logging
 
 def cargar_desde_archivo(filePath):
     '''
@@ -30,8 +30,7 @@ def cargar_desde_archivo(filePath):
     Returns:
     - List[str]: Lista del contenido del archivo.
     '''
-    from errors import CargaArchivoFallida
-
+    from .errors import CargaArchivoFallida
     content = []
     try:
         with open(filePath, 'r') as file:

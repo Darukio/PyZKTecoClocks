@@ -19,19 +19,25 @@
 
 import logging
 
-# Configurar el sistema de registros básico para program_debug.log
-logging.basicConfig(filename='program_debug.log', level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+if not getattr(logging.getLogger(), '_is_configured', False):
+    # Configurar el sistema de registros básico para program_debug.log
+    logging.basicConfig(filename='program_debug.log', level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Configurar un controlador adicional para los niveles de warning, error y critical en program_error.log
-error_logger = logging.FileHandler('program_error.log')
-error_logger.setLevel(logging.WARNING)
+    # Configurar un controlador adicional para los niveles de warning, error y critical en program_error.log
+    error_logger = logging.FileHandler('program_error.log')
+    error_logger.setLevel(logging.WARNING)
 
-# Definir un formato para el controlador adicional
-error_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-error_logger.setFormatter(error_formatter)
+    # Definir un formato para el controlador adicional
+    error_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    error_logger.setFormatter(error_formatter)
 
-# Agregar el controlador adicional al sistema de registros
+    # Agregar el controlador adicional al sistema de registros
+    logging.getLogger().addHandler(error_logger)
+
+    # Marcar el logger como configurado
+    logging.getLogger()._is_configured = True
+
 logging.getLogger().addHandler(error_logger)
 
 # Ejemplos de registros

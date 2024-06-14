@@ -21,7 +21,7 @@ import os
 import sys
 import subprocess
 import winreg as reg
-from utils import logging
+from ..scripts.utils import logging
 
 def create_service():
     # Obtener la ruta al ejecutable de Python en el entorno virtual

@@ -17,11 +17,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from connection import *
-from device_manager import *
-from errors import HoraDesactualizada
-from utils import logging
 import threading
+from .conn_manager import *
+from .device_manager import *
+from ..errors import HoraDesactualizada
 
 def actualizar_hora_dispositivos():
     infoDevices = None
@@ -32,6 +31,7 @@ def actualizar_hora_dispositivos():
         logging.error(e)
 
     if infoDevices:
+        threads = []
         # Itera a través de los dispositivos
         for infoDevice in infoDevices:
             # Si el dispositivo se encuentra activo...
@@ -43,8 +43,14 @@ def actualizar_hora_dispositivos():
                 except Exception as e:
                     thread = threading.Thread(target=reintentar_conexion_hora, args=(infoDevice,))
                     thread.start()
+                    threads.append(thread)
 
                 actualizar_hora_dispositivo(infoDevice, conn)
+    
+        # Espera a que todos los hilos hayan terminado
+        if threads:
+            for thread in threads:
+                thread.join()
 
 def actualizar_hora_dispositivo(infoDevice, conn):
     if conn:
@@ -60,6 +66,9 @@ def actualizar_hora_dispositivo(infoDevice, conn):
     return
 
 def reintentar_conexion_hora(infoDevice):
-    conn = reintentar_conexion(infoDevice)
-    actualizar_hora_dispositivo(infoDevice, conn)
+    try:
+        conn = reintentar_conexion(infoDevice)
+        actualizar_hora_dispositivo(infoDevice, conn)
+    except Exception as e:
+        pass
     return

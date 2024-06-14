@@ -17,20 +17,21 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import sys
 import os
 import time
 import schedule
 import configparser
 import tkinter as tk
+import threading
 from tkinter import messagebox
 from pystray import MenuItem as item
 from pystray import Icon, Menu
 from PIL import Image
-from attendances_manager import *
-from hour_manager import *
-from file_manager import cargar_desde_archivo
-from utils import logging
-import threading
+from ..conn.attendances_manager import *
+from ..conn.hour_manager import *
+from ..file_manager import cargar_desde_archivo
+from ..utils import logging
 
 # Para leer un archivo INI
 config = configparser.ConfigParser()
@@ -38,11 +39,15 @@ config.read('config.ini')
 
 class TrayApp:
     def __init__(self):
+        logging.debug('hola')
         self.is_running = False
         self.schedule_thread = None
         self.colorIcon = "red"
+        logging.debug('hola')
         self.checked = eval(config['Device_config']['clear_attendance'])
+        logging.debug('hola')
         self.icon = self.create_tray_icon()
+        logging.debug('hola')
         self.configurar_schedule(self.icon)
 
     def start_execution(self, icon):
@@ -83,7 +88,8 @@ class TrayApp:
         '''
             Crear ícono en la bandeja del sistema
         '''
-        filePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources", "system tray", f"circle-{self.colorIcon}.png")
+        logging.debug(getattr(sys, 'frozen', False))
+        filePath = os.path.join(self.directorio_de_ejecucion(), "resources", "system tray", f"circle-{self.colorIcon}.png")
         image = Image.open(filePath)
         
         try:
@@ -91,9 +97,10 @@ class TrayApp:
                 item('Iniciar', self.start_execution),
                 item('Detener', self.stop_execution),
                 item('Reiniciar', self.restart_execution),
+                item('Probar conexiones', self.opc_probar_conexiones),
                 item('Actualizar hora', self.opc_actualizar_hora_dispositivos),
                 item('Obtener marcaciones', self.opc_marcaciones_dispositivos),
-                item('Obtener cantidad de marcaciones', self.mostrar_cantidad_marcaciones),
+                item('Obtener cantidad de marcaciones', self.opc_mostrar_cantidad_marcaciones),
                 item('Eliminar marcaciones', self.toggle_checkbox_clear_attendance, checked=lambda item: self.checked, radio=True),
                 item('Salir', self.exit_icon)
                 )
@@ -102,6 +109,10 @@ class TrayApp:
             logging.error(e)
 
         return icon
+
+    def opc_probar_conexiones(self, icon):
+        ping_devices()
+        return
     
     def opc_actualizar_hora_dispositivos(self, icon):
         tiempo_inicial = self.iniciar_cronometro()
@@ -134,7 +145,7 @@ class TrayApp:
         with open('config.ini', 'w') as config_file:
             config.write(config_file)
     
-    def mostrar_cantidad_marcaciones(self, icon, item):
+    def opc_mostrar_cantidad_marcaciones(self, icon, item):
         # Crear una ventana emergente de tkinter
         root = tk.Tk()
         root.withdraw()  # Ocultar la ventana principal
@@ -153,10 +164,22 @@ class TrayApp:
     def set_icon_color(self, icon, color):
         # Función para cambiar el color del ícono
         self.colorIcon = color
-        filePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources", "system tray", f"circle-{self.colorIcon}.png")
+        filePath = os.path.join(self.directorio_de_ejecucion(), "resources", "system tray", f"circle-{self.colorIcon}.png")
         image = Image.open(filePath)
         icon.update_menu()
         icon.icon = image
+    
+    def directorio_de_ejecucion(self):
+        # Obtener la ruta del directorio del script
+        root_dir = os.path.dirname(os.path.abspath(__file__))
+        while os.path.basename(root_dir) != "PyZKTecoClocks":
+            root_dir = os.path.dirname(root_dir)
+        # Verificar si el script se está ejecutando desde un ejecutable de PyInstaller
+        
+        if getattr(sys, 'frozen', False):
+            os.path.join(root_dir, os.path.basename(sys.argv[0]))
+        logging.debug(root_dir)
+        return root_dir
 
     def exit_icon(self, icon, item):
         # Función para salir del programa

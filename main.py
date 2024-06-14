@@ -18,8 +18,8 @@
 """
 
 import sys
-from icon_manager import TrayApp
-from utils import logging
+from scripts.gui.icon_manager import TrayApp
+from scripts.utils import logging
 import configparser
 
 # Versión del programa
