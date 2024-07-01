@@ -17,6 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import asyncio
 import threading
 import time
 from connection import *
@@ -66,6 +67,7 @@ def obtener_info_dispositivos():
         logging.debug(infoDevices)
     return infoDevices
 
+'''
 def reintentar_conexion(infoDevice):
     config.read('config.ini')
     intentos_maximos = config['Network_config']['retry_connection']
@@ -95,13 +97,13 @@ def reintentar_conexion(infoDevice):
 def finalizar_cronometro(tiempo_inicial):
     tiempo_final = time.time()
     return tiempo_final-tiempo_inicial
+'''
 
-def ping_devices():
+async def ping_devices():
     infoDevices = None
     try:
         # Obtiene todos los dispositivos en una lista formateada
         infoDevices = obtener_info_dispositivos()
-        logging.debug(infoDevices)
     except Exception as e:
         logging.error(e)
 
@@ -115,9 +117,9 @@ def ping_devices():
                 status = None
                     
                 try:
-                    conn = conectar(infoDevice["ip"], port=4370)
+                    conn = await conectar(infoDevice["ip"], port=4370)
                     status = "Conexión exitosa"
-                    finalizar_conexion(conn)
+                    await finalizar_conexion(conn)
                 except Exception as e:
                     status = "Conexión fallida"
 
@@ -130,3 +132,17 @@ def ping_devices():
                 }
 
     return results
+
+async def reintentar_operacion(op, args=(), kwargs={}, intentos_maximos=3):
+    config.read('config.ini')
+    intentos_maximos = config['Network_config']['retry_connection']
+    result = None
+    
+    for _ in range(intentos_maximos):
+        try:
+            result = await op(*args, **kwargs)
+            break  # Si la operación tiene éxito, salir del bucle de reintentos
+        except Exception as e:
+            logging.warning(f"Failed attempt {_ + 1} of {intentos_maximos} for operation {op.__name__}: {e}")
+
+    return result

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import threading
 import time
@@ -11,6 +12,7 @@ from hour_manager import *
 from file_manager import cargar_desde_archivo
 from utils import logging
 from window_manager import DeviceStatusDialog
+from qasync import asyncSlot
 
 # Para leer un archivo INI
 config = configparser.ConfigParser()
@@ -184,37 +186,37 @@ class MainWindow(QMainWindow):
         except Exception as e:
             logging.error(f"Error al mostrar conexiones de dispositivos: {e}")  # Registro de error si falla la operación
 
-    @pyqtSlot()
-    def __opt_update_devices_time(self):
+    @asyncSlot()
+    async def __opt_update_devices_time(self):
         """
         Opción para actualizar la hora en los dispositivos.
         """
         self.__set_icon_color(self.tray_icon, "yellow")  # Establecer el color del ícono a amarillo
         tiempo_inicial = self.__iniciar_cronometro()  # Iniciar el cronómetro
-        actualizar_hora_dispositivos()  # Llamar a función para actualizar hora en dispositivos (se asume que está definida en otro lugar)
+        await actualizar_hora_dispositivos()  # Llamar a función para actualizar hora en dispositivos (se asume que está definida en otro lugar)
         self.__finalizar_cronometro(tiempo_inicial)  # Finalizar el cronómetro y mostrar notificación
         self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restaurar color del ícono según estado de ejecución
 
-    @pyqtSlot()
-    def __opt_fetch_devices_attendances(self):
+    @asyncSlot()
+    async def __opt_fetch_devices_attendances(self):
         """
         Opción para obtener las marcaciones de los dispositivos.
         """
         self.__set_icon_color(self.tray_icon, "yellow")  # Establecer el color del ícono a amarillo
         tiempo_inicial = self.__iniciar_cronometro()  # Iniciar el cronómetro
-        gestionar_marcaciones_dispositivos()  # Llamar a función para gestionar marcaciones de dispositivos (se asume que está definida en otro lugar)
+        await gestionar_marcaciones_dispositivos()  # Llamar a función para gestionar marcaciones de dispositivos (se asume que está definida en otro lugar)
         self.__finalizar_cronometro(tiempo_inicial)  # Finalizar el cronómetro y mostrar notificación
         self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restaurar color del ícono según estado de ejecución
 
-    @pyqtSlot()
-    def __opt_show_attendances_count(self):
+    @asyncSlot()
+    async def __opt_show_attendances_count(self):
         """
         Opción para mostrar la cantidad de marcaciones por dispositivo.
         """
         self.__set_icon_color(self.tray_icon, "yellow")  # Establecer el color del ícono a amarillo
         try:
             tiempo_inicial = self.__iniciar_cronometro()  # Iniciar el cronómetro
-            cantidad_marcaciones = obtener_cantidad_marcaciones()  # Llamar a función para obtener cantidad de marcaciones por dispositivo (se asume que está definida en otro lugar)
+            cantidad_marcaciones = await obtener_cantidad_marcaciones_dispositivos()  # Llamar a función para obtener cantidad de marcaciones por dispositivo (se asume que está definida en otro lugar)
             self.__finalizar_cronometro(tiempo_inicial)  # Finalizar el cronómetro y mostrar notificación
             cantidad_marcaciones_str = "\n".join([f"{ip}: {cantidad}" for ip, cantidad in cantidad_marcaciones.items()])  # Formatear resultados como texto
             self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restaurar color del ícono según estado de ejecución

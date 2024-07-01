@@ -21,11 +21,12 @@ from zk import ZK
 from datetime import datetime
 from utils import logging
 import configparser
+import asyncio
 
 # Para leer un archivo INI
 config = configparser.ConfigParser()
 
-def conectar(ip, port):
+async def conectar(ip, port):
     config.read('config.ini')
     conn = None
     try:
@@ -34,37 +35,43 @@ def conectar(ip, port):
         latency_limit=config['Network_config']['latency_limit'], 
         package_loss_limit=config['Network_config']['package_loss_limit'])
         logging.info(f'Connecting to device {ip}...')
-        conn = zk.connect()
-    except Exception as e:
-        raise Exception(str(e))
-    if conn is not None:
+        conn = await asyncio.to_thread(zk.connect)
         #logging.info('Disabling device...')
         #conn.disable_device()
         logging.info(f'Successfully connected to device {ip}.')
+        logging.debug(conn)
+        logging.debug(conn.get_platform())
+        logging.debug(conn.get_device_name())
         #conn.test_voice(index=10)
+    except Exception as e:
+        raise ConexionFallida from e
     return conn
-    
-def finalizar_conexion(conn):
-    #logging.info('Enabling device...')
-    #conn.enable_device()
+
+async def finalizar_conexion(conn):
     try:
-        logging.info(f'{conn.get_network_params()['ip']} - Disconnecting device...')
-        conn.disconnect()
+        #logging.info('Enabling device...')
+        #conn.enable_device()
+        logging.info(f'{conn.get_network_params()["ip"]} - Disconnecting device...')
+        await asyncio.to_thread(conn.disconnect)
     except Exception as e:
-        raise Exception(str(e))
-    
-def actualizar_hora(conn):
-    # get current machine's time
+        raise e
+
+async def actualizar_hora(conn):
     try:
-        zktime = conn.get_time()
-        logging.debug(f'{conn.get_network_params()['ip']} - Date and hour device: {zktime} - Date and hour machine: {newtime}')
-        validar_hora(zktime)
+        zktime = await asyncio.to_thread(conn.get_time)
+        logging.debug(f'{conn.get_network_params()["ip"]} - Date and hour device: {zktime} - Date and hour machine: {datetime.today()}')
     except Exception as e:
-        raise Exception(str(e))
-    finally:
-        # update new time to machine
+        raise e
+
+    try:
+        try:
+            validar_hora(zktime)
+        except Exception as e:
+            pass
         newtime = datetime.today()
-        conn.set_time(newtime)
+        await asyncio.to_thread(conn.set_time, newtime)
+    except Exception as e:
+        raise e
 
 def validar_hora(zktime):
     newtime = datetime.today()
@@ -75,24 +82,26 @@ def validar_hora(zktime):
     zktime.year != newtime.year):
         raise Exception('Hours or date between device and machine doesn\'t match')
     
-def obtener_marcaciones(conn, intentos=0):
+async def obtener_marcaciones(conn, intentos=0):
     attendances = []
     try:
-        logging.info(f'{conn.get_network_params()['ip']} - Getting attendances...')
-        attendances = conn.get_attendance()
-        if conn.records != len(attendances):
+        ip = conn.get_network_params()['ip']
+        records = conn.records
+        logging.info(f'{ip} - Getting attendances...')
+        attendances = await asyncio.to_thread(conn.get_attendance())
+        if records != len(attendances):
             if intentos < 3:
-                logging.warning(f"{conn.get_network_params()['ip']} - Records mismatch. Retrying... Attempt {intentos+1}")
-                return obtener_marcaciones(conn, intentos + 1)
+                logging.warning(f"{ip} - Records mismatch. Retrying... Attempt {intentos+1}")
+                return await obtener_marcaciones(conn, intentos + 1)
             else:
-                logging.error(f"{conn.get_network_params()['ip']} - Failed to retrieve attendances after 3 attempts.")
+                logging.error(f"{ip} - Failed to retrieve attendances after 3 attempts.")
         else:
             config.read('config.ini')
             logging.debug(f'clear_attendance: {config['Device_config']['clear_attendance']}')
             if eval(config['Device_config']['clear_attendance']):
-                logging.debug(f'{conn.get_network_params()['ip']} - Clearing attendances...')
-                conn.clear_attendance()
-            logging.debug(f'{conn.get_network_params()['ip']} - Length of attendances from device: {conn.records}, Length of attendances: {len(attendances)}')
+                logging.debug(f'{ip} - Clearing attendances...')
+                await asyncio.to_thread(conn.clear_attendance())
+            logging.debug(f'{ip} - Length of attendances from device: {records}, Length of attendances: {len(attendances)}')
     except Exception as e:
-        logging.error(f'Process terminated: {e}')
+        raise e
     return attendances

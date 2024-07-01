@@ -17,12 +17,13 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from PyQt5.QtWidgets import QApplication
+import asyncio
 from icon_manager import MainWindow
 from utils import logging
 import sys
 import configparser
 import threading
+from qasync import QEventLoop, QApplication as QAsyncApplication
 
 # Versión del programa
 VERSION = "v1.0.0-beta"
@@ -45,10 +46,16 @@ def main():
 
     if len(sys.argv) == 1:
         try:
-            app = QApplication(sys.argv)
+            app = QAsyncApplication(sys.argv)
+
+            # Integrar asyncio con PyQt usando qasync
+            loop = QEventLoop(app)
+            asyncio.set_event_loop(loop)
+
             main_window = MainWindow()
-            sys.exit(app.exec_())
-            
+
+            with loop:
+                sys.exit(loop.run_forever())            
         except Exception as e:
             logging.error(e)
 

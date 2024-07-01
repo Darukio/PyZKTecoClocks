@@ -21,9 +21,9 @@ from connection import *
 from device_manager import *
 from errors import HoraDesactualizada
 from utils import logging
-import threading
+import asyncio
 
-def actualizar_hora_dispositivos():
+async def actualizar_hora_dispositivos():
     infoDevices = None
     try:
         # Obtiene todos los dispositivos en una lista formateada
@@ -32,44 +32,38 @@ def actualizar_hora_dispositivos():
         logging.error(e)
 
     if infoDevices:
-        threads = []
+        tasks = []
+        resultados = []
+        
         # Itera a través de los dispositivos
         for infoDevice in infoDevices:
             # Si el dispositivo se encuentra activo...
             if eval(infoDevice["activo"]):
-                conn = None
-                        
-                try:
-                    conn = conectar(infoDevice["ip"], port=4370)
-                except Exception as e:
-                    thread = threading.Thread(target=reintentar_conexion_hora, args=(infoDevice,))
-                    thread.start()
-                    threads.append(thread)
+                tasks.append(actualizar_hora_dispositivo(infoDevice))
 
-                actualizar_hora_dispositivo(infoDevice, conn)
-    
-        # Espera a que todos los hilos hayan terminado
-        if threads:
-            for thread in threads:
-                thread.join()
+        # Ejecuta todas las tareas asíncronas y espera sus resultados
+        resultados = await asyncio.gather(*tasks, return_exceptions=True)
 
-def actualizar_hora_dispositivo(infoDevice, conn):
-    if conn:
-        logging.info(f'Processing IP: {infoDevice["ip"]}')
-        try:
-            try:
-                actualizar_hora(conn)
-            except Exception as e:
-                raise HoraDesactualizada(infoDevice["nombreModelo"], infoDevice["puntoMarcacion"], infoDevice["ip"]) from e
-        except HoraDesactualizada as e:
-            pass
-        finalizar_conexion(conn)
-    return
+        # Maneja los resultados y excepciones
+        for resultado in resultados:
+            if isinstance(resultado, Exception):
+                logging.error(f"Error en la tarea: {resultado}")
 
-def reintentar_conexion_hora(infoDevice):
+async def actualizar_hora_dispositivo(infoDevice):
+    conn = None
+                    
     try:
-        conn = reintentar_conexion(infoDevice)
-        actualizar_hora_dispositivo(infoDevice, conn)
-    except Exception as e:
+        conn = await reintentar_operacion(conectar, args=(infoDevice["ip"], 4370))
+
+        try:
+            await reintentar_operacion(actualizar_hora, args=(conn))
+        except Exception as e:
+            raise HoraDesactualizada(infoDevice["nombreModelo"], infoDevice["puntoMarcacion"], infoDevice["ip"]) from e
+        
+        await finalizar_conexion(conn)
+    except ConexionFallida as e:
+        raise ConexionFallida(infoDevice['nombreModelo'], infoDevice['puntoMarcacion'], infoDevice['ip']) from e
+    except HoraDesactualizada as e:
         pass
+
     return
