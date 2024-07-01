@@ -22,20 +22,30 @@ from datetime import datetime
 from utils import logging
 import configparser
 import asyncio
+from errors import ConexionFallida
 
 # Para leer un archivo INI
 config = configparser.ConfigParser()
 
 async def conectar(ip, port):
+    logging.debug(f'8 {ip}...')
     config.read('config.ini')
     conn = None
     try:
-        zk = ZK(ip, port, omit_ping=config['Network_config']['omit_ping'], 
-        ping_packages_size=config['Network_config']['ping_packages_size'], 
-        latency_limit=config['Network_config']['latency_limit'], 
-        package_loss_limit=config['Network_config']['package_loss_limit'])
+        logging.debug(f'9 {ip}...')
+        omit_ping = eval(config['Network_config']['omit_ping'])
+        ping_packages_size = int(config['Network_config']['ping_packages_size'])
+        latency_limit = int(config['Network_config']['latency_limit'])
+        package_loss_limit = int(config['Network_config']['package_loss_limit'])
+        zk = await asyncio.to_thread(ZK, ip, port, omit_ping, 
+        ping_packages_size, 
+        latency_limit, 
+        package_loss_limit)
         logging.info(f'Connecting to device {ip}...')
+        logging.debug(f'10 {ip}...')
         conn = await asyncio.to_thread(zk.connect)
+        #conn = zk.connect()
+        logging.debug(f'11 {ip}...')
         #logging.info('Disabling device...')
         #conn.disable_device()
         logging.info(f'Successfully connected to device {ip}.')
@@ -44,6 +54,7 @@ async def conectar(ip, port):
         logging.debug(conn.get_device_name())
         #conn.test_voice(index=10)
     except Exception as e:
+        logging.error(e)
         raise ConexionFallida from e
     return conn
 

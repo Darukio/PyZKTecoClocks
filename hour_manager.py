@@ -53,13 +53,17 @@ async def actualizar_hora_dispositivo(infoDevice):
     conn = None
                     
     try:
-        conn = await reintentar_operacion(conectar, args=(infoDevice["ip"], 4370))
+        logging.debug('1')
+        conn = await conectar(infoDevice["ip"], port=4370)
+        #conn = await reintentar_operacion(conectar, args=(infoDevice["ip"], 4370))
 
         try:
+            logging.debug('2')
             await reintentar_operacion(actualizar_hora, args=(conn))
         except Exception as e:
             raise HoraDesactualizada(infoDevice["nombreModelo"], infoDevice["puntoMarcacion"], infoDevice["ip"]) from e
         
+        logging.debug('3')
         await finalizar_conexion(conn)
     except ConexionFallida as e:
         raise ConexionFallida(infoDevice['nombreModelo'], infoDevice['puntoMarcacion'], infoDevice['ip']) from e

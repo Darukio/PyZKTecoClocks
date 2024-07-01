@@ -23,7 +23,7 @@ from utils import logging
 import sys
 import configparser
 import threading
-from qasync import QEventLoop, QApplication as QAsyncApplication
+from qasync import QApplication, QEventLoop
 
 # Versión del programa
 VERSION = "v1.0.0-beta"
@@ -46,16 +46,17 @@ def main():
 
     if len(sys.argv) == 1:
         try:
-            app = QAsyncApplication(sys.argv)
+            app = QApplication(sys.argv)
 
-            # Integrar asyncio con PyQt usando qasync
+            # Configurar el bucle de eventos de qasync
             loop = QEventLoop(app)
             asyncio.set_event_loop(loop)
 
             main_window = MainWindow()
 
+            # Ejecutar el bucle de eventos de qasync
             with loop:
-                sys.exit(loop.run_forever())            
+                sys.exit(loop.run_forever())
         except Exception as e:
             logging.error(e)
 

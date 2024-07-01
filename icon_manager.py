@@ -12,7 +12,7 @@ from hour_manager import *
 from file_manager import cargar_desde_archivo
 from utils import logging
 from window_manager import DeviceStatusDialog
-from qasync import asyncSlot
+from qasync import asyncSlot, asyncClose
 
 # Para leer un archivo INI
 config = configparser.ConfigParser()
@@ -139,6 +139,10 @@ class MainWindow(QMainWindow):
         tiempo_transcurrido = tiempo_final - tiempo_inicial  # Calcular el tiempo transcurrido
         self.tray_icon.showMessage("Notificación", f'La tarea finalizó en {tiempo_transcurrido:.2f} segundos', QSystemTrayIcon.Information)  # Mostrar notificación con el tiempo transcurrido
 
+    @asyncClose
+    async def closeEvent(self, event):  # noqa:N802
+        await self.session.close()
+
     @pyqtSlot()
     def __opt_start_execution(self):
         """
@@ -192,10 +196,23 @@ class MainWindow(QMainWindow):
         Opción para actualizar la hora en los dispositivos.
         """
         self.__set_icon_color(self.tray_icon, "yellow")  # Establecer el color del ícono a amarillo
-        tiempo_inicial = self.__iniciar_cronometro()  # Iniciar el cronómetro
-        await actualizar_hora_dispositivos()  # Llamar a función para actualizar hora en dispositivos (se asume que está definida en otro lugar)
-        self.__finalizar_cronometro(tiempo_inicial)  # Finalizar el cronómetro y mostrar notificación
-        self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restaurar color del ícono según estado de ejecución
+        try:
+            print("Updating devices time...")
+            # Llamar a tu función asíncrona para actualizar la hora de los dispositivos
+            await actualizar_hora_dispositivos()
+            print("Update devices time finished.")
+        except Exception as e:
+            print(f"Error en la actualización de la hora de los dispositivos: {e}")
+        finally:
+            self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restaurar color del ícono según estado de ejecución
+
+
+
+
+        #tiempo_inicial = self.__iniciar_cronometro()  # Iniciar el cronómetro
+        #await actualizar_hora_dispositivos()  # Llamar a función para actualizar hora en dispositivos (se asume que está definida en otro lugar)
+        #self.__finalizar_cronometro(tiempo_inicial)  # Finalizar el cronómetro y mostrar notificación
+        #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restaurar color del ícono según estado de ejecución
 
     @asyncSlot()
     async def __opt_fetch_devices_attendances(self):

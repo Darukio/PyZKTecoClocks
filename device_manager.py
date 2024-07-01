@@ -134,15 +134,20 @@ async def ping_devices():
     return results
 
 async def reintentar_operacion(op, args=(), kwargs={}, intentos_maximos=3):
+    logging.debug('4')
     config.read('config.ini')
-    intentos_maximos = config['Network_config']['retry_connection']
+    intentos_maximos = int(config['Network_config']['retry_connection'])
     result = None
     
     for _ in range(intentos_maximos):
         try:
+            logging.debug('5')
             result = await op(*args, **kwargs)
-            break  # Si la operación tiene éxito, salir del bucle de reintentos
+            logging.debug('6')
+            logging.debug(result)
+            return result
         except Exception as e:
             logging.warning(f"Failed attempt {_ + 1} of {intentos_maximos} for operation {op.__name__}: {e}")
 
-    return result
+    raise Exception
+    

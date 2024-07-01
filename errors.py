@@ -39,7 +39,7 @@ class ErrorConEscrituraEnArchivo(Exception):
             logging.error(f'Error al manejar excepción: {e}')
 
 class ConexionFallida(ErrorConEscrituraEnArchivo):
-    def __init__():
+    def __init__(self):
         super().__init__()
 
     def __init__(self, nombre_modelo, punto_marcacion, ip):
