@@ -16,17 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-import win32serviceutil
 import logging
 import os
 import time
-import win32service
-
-from schedulerService import check_and_install_service
+from scripts.business_logic.device_manager import activate_all_devices
 from scripts.ui.device_attendance_count_dialog import DeviceAttendancesCountDialog
 from scripts.ui.device_attendance_dialog import DeviceAttendancesDialog
 from scripts.ui.logs_dialog import LogsDialog
-from scripts.ui.message_box import MessageBox
 from scripts.ui.modify_device_dialog import ModifyDevicesDialog
 from scripts.ui.ping_devices_dialog import PingDevicesDialog
 from scripts.ui.restart_devices_dialog import RestartDevicesDialog
@@ -58,7 +54,7 @@ class MainWindow(QMainWindow):
         self.tray_icon = None  # Variable to store the QSystemTrayIcon
         self.__init_ui()  # Initialize the user interface
 
-        #self.__opt_start_execution()
+        activate_all_devices()  # Activate all devices
 
     def __init_ui(self):
         self.setWindowTitle('Ventana principal')  # Main window title
@@ -72,21 +68,16 @@ class MainWindow(QMainWindow):
         '''
         Create a system tray icon with a custom context menu
         '''
-        file_path = os.path.join(find_marker_directory("resources"), "resources", "system_tray", f"circle-{self.color_icon}.png")  # Icon file path
+        file_path = os.path.join(find_marker_directory("resources"), "resources", "system_tray", "program-icon.png")  # Icon file path
         logging.debug(file_path)
 
         try:
             self.tray_icon = QSystemTrayIcon(QIcon(file_path), self)  # Create QSystemTrayIcon with the icon and associated main window
             self.tray_icon.showMessage("Notificación", 'Iniciando la aplicación', QSystemTrayIcon.Information)
-            self.tray_icon.setToolTip("Gestor Reloj de Asistencias")  # Tooltip text
+            self.tray_icon.setToolTip("Programa Reloj de Asistencias")  # Tooltip text
 
             # Create a custom context menu
             menu = QMenu()
-            menu.addAction(self.__create_action("Iniciar servicio", lambda: self.__opt_start_execution()))  # Action to start execution
-            menu.addAction(self.__create_action("Detener servicio", lambda: self.__opt_stop_execution()))  # Action to stop execution
-            menu.addAction(self.__create_action("Reiniciar servicio", lambda: self.__opt_restart_execution()))  # Action to restart execution
-            menu.addAction(self.__create_action("Reinstalar servicio", lambda: self.__opt_reinstall_service()))  # Action to reinstall the service
-            menu.addSeparator()  # Context menu separator
             menu.addAction(self.__create_action("Modificar dispositivos...", lambda: self.__opt_modify_devices()))  # Action to modify devices
             menu.addAction(self.__create_action("Reiniciar dispositivos...", lambda: self.__opt_restart_devices()))  # Action to restart devices    
             menu.addAction(self.__create_action("Probar conexiones...", lambda: self.__opt_test_connections()))  # Action to test connections
@@ -117,39 +108,6 @@ class MainWindow(QMainWindow):
             logging.error(f"Error al crear el ícono en la bandeja del sistema: {e}")
 
         self.tray_icon.show()  # Show the system tray icon
-
-    def __opt_reinstall_service(self):
-        try:
-            self.__opt_stop_execution()
-            win32serviceutil.RemoveService(self.service_name)
-            time.sleep(5)
-            retries = 0
-            success = False
-
-            while retries < self.MAX_RETRIES and not success:
-                try:
-                    logging.info(f"Intentando instalar el servicio... Intento {retries + 1}/{self.MAX_RETRIES}")
-                    logging.debug(find_root_directory())
-                    
-                    check_and_install_service()
-                    self.__opt_start_execution()
-                    if self.check_service_running(self.service_name):
-                        self.tray_icon.showMessage("Notificación", 'El servicio se reinstaló correctamente', QSystemTrayIcon.Information)
-                        success = True
-                        break
-                    time.sleep(1)  # Wait a moment for the service to change state
-                except win32service.error as e:
-                    if e.winerror == 1060:
-                        logging.error(f'Error al iniciar el servicio {self.service_name}: {e.strerror}')
-                    return
-                except Exception as e:
-                    logging.error(f"Error al intentar iniciar el servicio: {e}")
-                finally:
-                    retries += 1
-                    if not success:
-                        time.sleep(15)  # Wait before trying again
-        except Exception as e:
-            logging.error(f"Error al reinstalar el servicio: {e}")
 
     def __create_action(self, text, function):
         """
@@ -199,43 +157,6 @@ class MainWindow(QMainWindow):
         logging.debug(f'The task finished in {elapsed_time:.2f} seconds')
         self.tray_icon.showMessage("Notificación", f'The task finished in {elapsed_time:.2f} seconds', QSystemTrayIcon.Information)  # Show notification with the elapsed time
 
-    @pyqtSlot()
-    def __opt_start_execution(self):
-        """
-        Option to start the application execution with retries and service status verification.
-        """
-        self.tray_icon.showMessage("Notificación", 'Iniciando el servicio', QSystemTrayIcon.Information)
-        retries = 0
-        success = False
-
-        while retries < self.MAX_RETRIES and not success:
-            try:
-                if self.check_service_running(self.service_name):
-                    logging.info("El servicio se inicio correctamente")
-                    success = True
-                    break
-
-                logging.info(f"Intentando iniciar el servicio... Intento {retries + 1}/{self.MAX_RETRIES}")
-                logging.debug(find_root_directory())
-                win32serviceutil.StartService(self.service_name, find_root_directory())
-                time.sleep(1)  # Wait a moment for the service to change state
-            except win32service.error as e:
-                if e.winerror == 1060:
-                    logging.error(f'Error al iniciar el servicio {self.service_name}: {e.strerror}')
-                return
-            except Exception as e:
-                logging.error(f"Error al intentar iniciar el servicio: {e}")
-            finally:
-                retries += 1
-                if not success:
-                    time.sleep(5)  # Wait before trying again
-
-        if success:
-            self.__update_running_service(True)  # Mark that the application is running
-            self.__set_icon_color(self.tray_icon, "green")  # Set the icon color to green
-        else:
-            logging.critical("No se pudo iniciar el servicio despues de multiples intentos")
-
     def __update_running_service(self, is_running):
         self.is_running = is_running
 
@@ -260,67 +181,15 @@ class MainWindow(QMainWindow):
             self.tray_icon.contextMenu().setVisible(True)
 
     @pyqtSlot()
-    def __opt_stop_execution(self):
-        """
-        Option to stop the application execution.
-        """
-        self.__update_running_service(False)
-        if self.check_service_running(self.service_name):
-            win32serviceutil.StopService(self.service_name)
-            self.tray_icon.showMessage("Notificación", 'Deteniendo el servicio', QSystemTrayIcon.Information)
-            logging.debug("Deteniendo el servicio")
-            while not self.check_service_stopped(self.service_name):
-                time.sleep(1)
-                logging.debug("Esperando a que el servicio se detenga...")
-                if self.check_service_stopped(self.service_name):
-                    logging.debug("Se detuvo el servicio")
-                    self.tray_icon.showMessage("Notificación", 'El servicio se detuvo correctamente', QSystemTrayIcon.Information)
-        if self.color_icon != "yellow":
-            self.__set_icon_color(self.tray_icon, "red")  # Set the icon color to red
-
-    def check_service_stopped(self, service_name):
-        try:
-            status = win32serviceutil.QueryServiceStatus(service_name)
-            logging.debug(f"Estado del servicio {service_name}: {status[1]}")  # Debug log: service status
-            # State 4 means it is running
-            if status[1] == 1:
-                return True
-            return False
-        except Exception as e:
-            print(f"Error al verificar el estado del servicio: {e}")
-            return False
-        
-    def check_service_running(self, service_name):
-        try:
-            status = win32serviceutil.QueryServiceStatus(service_name)
-            logging.debug(f"Estado del servicio {service_name}: {status[1]}")  # Debug log: service status
-            logging.debug(status[1] == 4)
-            # State 4 means it is running
-            if status[1] == 4:
-                return True
-            return False
-        except Exception as e:
-            print(f"Error al verificar el estado del servicio: {e}")
-            return False
-
-    @pyqtSlot()
-    def __opt_restart_execution(self):
-        """
-        Option to restart the application execution.
-        """
-        self.__opt_stop_execution()  # Stop the current execution
-        self.__opt_start_execution()  # Start the execution again
-
-    @pyqtSlot()
     def __opt_modify_devices(self):
         """
         Option to test device connections.
         """
-        self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
+        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
             device_dialog = ModifyDevicesDialog()  # Get device status
             device_dialog.exec_()
-            self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
             # Once the QMessageBox is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
@@ -332,11 +201,11 @@ class MainWindow(QMainWindow):
         """
         Option to show logs.
         """
-        self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
+        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
             error_log_dialog = LogsDialog()  # Get device status
             error_log_dialog.exec_()
-            self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
             # Once the QMessageBox is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
@@ -348,11 +217,11 @@ class MainWindow(QMainWindow):
         """
         Option to restart devices.
         """
-        self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
+        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
             restart_devices_dialog = RestartDevicesDialog()  # Get device status
             restart_devices_dialog.exec_()
-            self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
             # Once the QMessageBox is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
@@ -364,12 +233,12 @@ class MainWindow(QMainWindow):
         """
         Option to test device connections.
         """
-        self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
+        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
             device_status_dialog = PingDevicesDialog()  # Get device status
             device_status_dialog.op_terminated.connect(self.stop_timer)
             device_status_dialog.exec_()
-            self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
             # Once the QMessageBox is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
@@ -381,23 +250,23 @@ class MainWindow(QMainWindow):
         """
         Option to update the time on devices.
         """
-        self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
+        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         start_time = self.start_timer()  # Start the timer
         update_device_time()  # Call function to update time on devices (assumed to be defined elsewhere)
         self.stop_timer(start_time)  # Stop the timer and show notification
-        self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+        #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
 
     @pyqtSlot()
     def __opt_fetch_devices_attendances(self):
         """
         Option to fetch device attendances.
         """
-        self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
+        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
             device_attendances_dialog = DeviceAttendancesDialog()
             device_attendances_dialog.op_terminated.connect(self.stop_timer)
             device_attendances_dialog.exec_()
-            self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
             # Once the QMessageBox is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
@@ -409,12 +278,12 @@ class MainWindow(QMainWindow):
         """
         Option to show the number of attendances per device.
         """
-        self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
+        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
             device_attendances_count_dialog = DeviceAttendancesCountDialog()
             device_attendances_count_dialog.op_terminated.connect(self.stop_timer)
             device_attendances_count_dialog.exec_()
-            self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
             # Once the QMessageBox is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
@@ -463,17 +332,17 @@ class MainWindow(QMainWindow):
             QApplication.quit()  # Exit the application
 
     def thread_manage_device_attendances(self):
-        self.__set_icon_color(self.tray_icon, "yellow")
+        #self.__set_icon_color(self.tray_icon, "yellow")
         try:
             manage_device_attendances(from_service=True)
         except Exception as e:
             logging.critical(e)
-        self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+        #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
 
     def thread_update_device_time(self):
-        self.__set_icon_color(self.tray_icon, "yellow")
+        #self.__set_icon_color(self.tray_icon, "yellow")
         try:
             update_device_time(from_service=True)
         except Exception as e:
             logging.critical(e)
-        self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+        #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status

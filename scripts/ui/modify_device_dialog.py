@@ -23,7 +23,8 @@ from scripts.ui.base_dialog import BaseDialog
 from scripts.ui.checkbox import CheckBoxDelegate
 from scripts.ui.combobox import ComboBoxDelegate
 from scripts.utils.file_manager import find_root_directory
-from PyQt5.QtWidgets import QMessageBox, QComboBox, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QPushButton, QDialog, QHBoxLayout, QComboBox, QFormLayout, QLineEdit, QCheckBox, QComboBox, QHeaderView
+from ast import literal_eval
+from PyQt5.QtWidgets import QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QPushButton, QDialog, QHBoxLayout, QComboBox, QFormLayout, QLineEdit, QHeaderView
 
 class ModifyDevicesDialog(BaseDialog):
     def __init__(self, parent=None):
@@ -39,8 +40,8 @@ class ModifyDevicesDialog(BaseDialog):
         layout = QVBoxLayout(self)
 
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(7)
-        self.table_widget.setHorizontalHeaderLabels(["Distrito", "Modelo", "Punto de Marcación", "IP", "ID", "Comunicación", "Activado"])
+        self.table_widget.setColumnCount(8)
+        self.table_widget.setHorizontalHeaderLabels(["Distrito", "Modelo", "Punto de Marcación", "IP", "ID", "Comunicación", "Pila funcionando", "Activado"])
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.table_widget.horizontalHeader().setStretchLastSection(True)
         self.table_widget.setEditTriggers(QTableWidget.DoubleClicked)
@@ -90,12 +91,12 @@ class ModifyDevicesDialog(BaseDialog):
     # Methods for selecting and deselecting "Active" checkboxes
     def activate_all(self):
         for row in range(self.table_widget.rowCount()):
-            checkbox_delegate = self.table_widget.cellWidget(row, 6)
+            checkbox_delegate = self.table_widget.cellWidget(row, 7)
             checkbox_delegate.setChecked(True)
 
     def deactivate_all(self):
         for row in range(self.table_widget.rowCount()):
-            checkbox_delegate = self.table_widget.cellWidget(row, 6)
+            checkbox_delegate = self.table_widget.cellWidget(row, 7)
             checkbox_delegate.setChecked(False)
 
     def add_device(self):
@@ -118,17 +119,17 @@ class ModifyDevicesDialog(BaseDialog):
             with open(self.file_path, 'r') as file:
                 for line in file:
                     parts = line.strip().split(' - ')
-                    if len(parts) == 7:
-                        district, model, point, ip, id, communication, active = parts
+                    if len(parts) == 8:
+                        district, model, point, ip, id, communication, battery, active = parts
                         self.max_id = max(self.max_id, int(id))  # Update max_id
-                        data.append((district, model, point, ip, id, communication, active == 'True'))
+                        data.append((district, model, point, ip, id, communication, literal_eval(battery), literal_eval(active)))
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al cargar datos: {e}")
         return data
 
     def load_data_into_table(self):
         self.table_widget.setRowCount(0)
-        for row, (district, model, point, ip, id, communication, active) in enumerate(self.data):
+        for row, (district, model, point, ip, id, communication, battery, active) in enumerate(self.data):
             self.table_widget.insertRow(row)
             self.table_widget.setItem(row, 0, QTableWidgetItem(district))
             self.table_widget.setItem(row, 1, QTableWidgetItem(model))
@@ -141,9 +142,15 @@ class ModifyDevicesDialog(BaseDialog):
             # Set the value in the model for column 5
             self.table_widget.setItem(row, 5, QTableWidgetItem(communication))
             # Set CheckBoxDelegate for column 6
-            checkbox_delegate = CheckBoxDelegate()
-            checkbox_delegate.setChecked(active)
-            self.table_widget.setCellWidget(row, 6, checkbox_delegate)
+            checkbox_battery = CheckBoxDelegate()
+            checkbox_battery.setChecked(battery)
+            self.table_widget.setCellWidget(row, 6, checkbox_battery)
+            # Set CheckBoxDelegate for column 7
+            checkbox_active = CheckBoxDelegate()
+            checkbox_active.setChecked(active)
+            self.table_widget.setCellWidget(row, 7, checkbox_active)
+
+        self.adjust_size_to_table()
 
     def save_data(self):
         try:
@@ -155,9 +162,10 @@ class ModifyDevicesDialog(BaseDialog):
                     ip = self.table_widget.item(row, 3).text()
                     id = self.table_widget.item(row, 4).text()
                     communication = self.table_widget.item(row, 5).text()
-                    active = self.table_widget.cellWidget(row, 6).isChecked()
-                    logging.debug(f"{district} - {model} - {point} - {ip} - {id} - {communication} - {active}")
-                    file.write(f"{district} - {model} - {point} - {ip} - {id} - {communication} - {active}\n")
+                    battery = self.table_widget.cellWidget(row, 6).isChecked()
+                    active = self.table_widget.cellWidget(row, 7).isChecked()
+                    logging.debug(f"{district} - {model} - {point} - {ip} - {id} - {communication} - {battery} - {active}")
+                    file.write(f"{district} - {model} - {point} - {ip} - {id} - {communication} - {battery} - {active}\n")
             QMessageBox.information(self, "Éxito", "Datos guardados correctamente.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al guardar datos: {e}")
@@ -189,6 +197,7 @@ class AddDevicesDialog(QDialog):
         self.communication = self.combo_box.currentText()
         
         self.active = True
+        self.battery = True
 
         form_layout.addRow("Distrito:", self.district_edit)
         form_layout.addRow("Modelo:", self.model_edit)
@@ -217,5 +226,6 @@ class AddDevicesDialog(QDialog):
             self.ip_edit.text(),
             self.id,
             self.communication,
+            self.battery,
             self.active
         )

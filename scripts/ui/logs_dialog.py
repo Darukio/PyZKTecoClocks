@@ -17,6 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import logging
 import os
 import re
 import json
@@ -36,11 +37,25 @@ LOGS_DIR = os.path.join(find_root_directory(), "logs")
 ERROR_CODES_DICT = {}
 ERROR_CODES_SET = set()
 
-errors_file = os.path.join(find_marker_directory("json"), "json", "errors.json")
-if os.path.exists(errors_file):
-    with open(errors_file, encoding="utf-8", errors="replace") as f:
-        ERROR_CODES_DICT = json.load(f)  # Dictionary of error codes and descriptions
-        ERROR_CODES_SET = set(ERROR_CODES_DICT.keys())  # Set of error codes
+#errors_file = os.path.join(find_marker_directory("json"), "json", "errors.json")
+#if os.path.exists(errors_file):
+#    with open(errors_file, encoding="utf-8", errors="replace") as f:
+#        ERROR_CODES_DICT = json.load(f)  # Dictionary of error codes and descriptions
+#        ERROR_CODES_SET = set(ERROR_CODES_DICT.keys())  # Set of error codes
+
+ERROR_CODES_DICT = {
+    "0000": "Error desconocido",
+    "1000": "Error al conectar con el dispositivo",
+    "1001": "Error de red",
+    "2000": "Error de dispositivo",
+    "2001": "Error de pila fallando",
+    "2002": "Error al reiniciar el dispositivo",
+    "3000": "Error de aplicacion",
+    "3001": "Error de carga de archivo",
+    "3500": "Error de interfaz grafica",
+    "3501": "Error al inicializar ventana"
+}
+ERROR_CODES_SET = set(ERROR_CODES_DICT.keys())
 
 class LogsDialog(BaseDialog):
     def __init__(self):
@@ -68,6 +83,7 @@ class LogsDialog(BaseDialog):
             self.error_list.itemSelectionChanged.connect(self.load_logs)  # Dynamic filtering on selection change
 
             for code, description in ERROR_CODES_DICT.items():
+                logging.debug(f"Error code: {code} - Description: {description}")
                 item = QListWidgetItem(f"[{code}] {description}")
                 item.setData(1, code)  # Store only the error code as data
                 self.error_list.addItem(item)

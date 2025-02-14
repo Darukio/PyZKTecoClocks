@@ -20,6 +20,7 @@
 # Subclass for the device status dialog
 import logging
 from scripts.business_logic.attendances_manager import manage_device_attendances
+from scripts.business_logic.device_manager import activate_all_devices
 from scripts.ui.device_base_dialog import DeviceBaseDialog
 from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QLabel, QTableWidgetItem
 from PyQt5.QtCore import Qt
@@ -61,7 +62,7 @@ class DeviceAttendancesDialog(DeviceBaseDialog):
     def update_progress(self, percent_progress, device_progress, processed_devices, total_devices):
         if percent_progress and device_progress:
             self.progress_bar.setValue(percent_progress)  # Update the progress bar value
-            self.label_actualizando.setText(f"Último intento de conexión: {device_progress}\n{processed_devices}/{total_devices} dispositivos")
+            self.label_updating.setText(f"Último intento de conexión: {device_progress}\n{processed_devices}/{total_devices} dispositivos")
         
     def update_table(self, device_status=None):
         try:
@@ -74,13 +75,16 @@ class DeviceAttendancesDialog(DeviceBaseDialog):
             logging.error(f"Error al actualizar la tabla de dispositivos: {e}")
 
     def show_btn_retry_failed_connection(self):
-        self.btn_retry_all_connection.setVisible(True)
-        
-        has_failed_connection = any(
-            device["attendance_count"] == "Conexión fallida" for device in self.op_thread.result.values()
-            )
-        if has_failed_connection:
-            self.btn_retry_failed_connection.setVisible(True)
+        try:
+            self.btn_retry_all_connection.setVisible(True)
+            
+            has_failed_connection = any(
+                device["attendance_count"] == "Conexión fallida" for device in self.op_thread.result.values()
+                )
+            if has_failed_connection:
+                self.btn_retry_failed_connection.setVisible(True)
+        except Exception as e:
+            logging.error(e)
 
     def update_last_column(self, row, device_info):
         try:
@@ -101,34 +105,17 @@ class DeviceAttendancesDialog(DeviceBaseDialog):
     
     def on_retry_all_connection_clicked(self):
         self.label_total_marcaciones.setVisible(False)
-        self.label_actualizando.setText("Reintentando conexiones...")
+        self.label_updating.setText("Reintentando conexiones...")
 
-        try:
-            with open('info_devices.txt', 'r') as file:
-                lines = file.readlines()
-
-            new_lines = []
-            for line in lines:
-                parts = line.strip().split(' - ')
-                ip = parts[3]
-                parts[6] = "True"
-                new_lines.append(' - '.join(parts) + '\n')
-
-            with open('info_devices.txt', 'w') as file:
-                file.writelines(new_lines)
-
-            logging.debug("Estado activo actualizado correctamente.")
-
-            self.update_data()
-        except Exception as e:
-            logging.error(f"Error al actualizar el estado activo: {e}")
+        activate_all_devices()
+        self.update_data()
     
         self.btn_retry_failed_connection.setVisible(False)  # Hide the button after clicking
         self.btn_retry_all_connection.setVisible(False)  # Hide the button after clicking
     
     def on_retry_failed_connection_clicked(self):
         self.label_total_marcaciones.setVisible(False)
-        self.label_actualizando.setText("Reintentando conexiones...")
+        self.label_updating.setText("Reintentando conexiones...")
 
         try:
             with open('info_devices.txt', 'r') as file:
@@ -139,9 +126,9 @@ class DeviceAttendancesDialog(DeviceBaseDialog):
                 parts = line.strip().split(' - ')
                 ip = parts[3]
                 if ip in self.op_thread.result and self.op_thread.result[ip]["attendance_count"] == "Conexión fallida":
-                    parts[6] = "True"
+                    parts[7] = "True"
                 else:
-                    parts[6] = "False"
+                    parts[7] = "False"
                 new_lines.append(' - '.join(parts) + '\n')
 
             with open('info_devices.txt', 'w') as file:

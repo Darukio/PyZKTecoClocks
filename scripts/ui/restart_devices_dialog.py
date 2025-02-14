@@ -18,8 +18,8 @@
 """
 
 from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem,
-    QCheckBox, QPushButton, QHeaderView, QMessageBox
+    QVBoxLayout, QTableWidget, QTableWidgetItem,
+    QPushButton, QHeaderView, QMessageBox
 )
 import os
 import logging
@@ -27,6 +27,7 @@ import logging
 from scripts.business_logic.connection import restart_device
 from scripts.business_logic.device_manager import retry_network_operation
 from scripts.ui.base_dialog import BaseDialog
+from scripts.ui.checkbox import CheckBoxDelegate
 from scripts.ui.combobox import ComboBoxDelegate
 from PyQt5.QtCore import Qt
 
@@ -49,7 +50,8 @@ class RestartDevicesDialog(BaseDialog):
         self.table_widget = QTableWidget()
         self.table_widget.setColumnCount(7)
         self.table_widget.setHorizontalHeaderLabels(["Distrito", "Modelo", "Punto de Marcación", "IP", "ID", "Comunicación", "Seleccionar reinicio"])
-        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.table_widget.horizontalHeader().setStretchLastSection(True)
         layout.addWidget(self.table_widget)
 
         # Button to restart selected devices
@@ -69,9 +71,9 @@ class RestartDevicesDialog(BaseDialog):
             with open(self.file_path, "r") as file:
                 for line in file:
                     parts = line.strip().split(" - ")
-                    if len(parts) == 7:
-                        distrito, modelo, punto_marcacion, ip, id, comunicacion, activo = parts
-                        self.data.append((distrito, modelo, punto_marcacion, ip, id, comunicacion))
+                    if len(parts) == 8:
+                        district, model, point, ip, id, communication, battery, active = parts
+                        self.data.append((district, model, point, ip, id, communication))
             self.load_data_into_table()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo cargar la información: {e}")
@@ -80,21 +82,21 @@ class RestartDevicesDialog(BaseDialog):
         """Fill the table with device data."""
         self.table_widget.setRowCount(0)
 
-        for row, (distrito, modelo, punto_marcacion, ip, id, comunicacion) in enumerate(self.data):
+        for row, (district, model, point, ip, id, communication) in enumerate(self.data):
             self.table_widget.insertRow(row)
 
             # Create non-editable cells
-            item_distrito = QTableWidgetItem(distrito)
-            item_distrito.setFlags(item_distrito.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 0, item_distrito)
+            item_district = QTableWidgetItem(district)
+            item_district.setFlags(item_district.flags() & ~Qt.ItemIsEditable)
+            self.table_widget.setItem(row, 0, item_district)
 
-            item_modelo = QTableWidgetItem(modelo)
-            item_modelo.setFlags(item_modelo.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 1, item_modelo)
+            item_model = QTableWidgetItem(model)
+            item_model.setFlags(item_model.flags() & ~Qt.ItemIsEditable)
+            self.table_widget.setItem(row, 1, item_model)
 
-            item_punto_marcacion = QTableWidgetItem(punto_marcacion)
-            item_punto_marcacion.setFlags(item_punto_marcacion.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 2, item_punto_marcacion)
+            item_point = QTableWidgetItem(point)
+            item_point.setFlags(item_point.flags() & ~Qt.ItemIsEditable)
+            self.table_widget.setItem(row, 2, item_point)
 
             item_ip = QTableWidgetItem(ip)
             item_ip.setFlags(item_ip.flags() & ~Qt.ItemIsEditable)
@@ -109,14 +111,16 @@ class RestartDevicesDialog(BaseDialog):
             self.table_widget.setItemDelegateForColumn(5, combo_box_delegate)
 
             # Display the value as text, not editable
-            item_comunicacion = QTableWidgetItem(comunicacion)
-            item_comunicacion.setFlags(item_comunicacion.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 5, item_comunicacion)
+            item_communication = QTableWidgetItem(communication)
+            item_communication.setFlags(item_communication.flags() & ~Qt.ItemIsEditable)
+            self.table_widget.setItem(row, 5, item_communication)
 
             # Configure CheckBox in column 6 (interactive)
-            checkbox = QCheckBox()
+            checkbox = CheckBoxDelegate()
             checkbox.setChecked(False)
             self.table_widget.setCellWidget(row, 6, checkbox)
+
+        self.adjust_size_to_table()
 
     def restart_selected_devices(self):
         """Restart selected devices."""

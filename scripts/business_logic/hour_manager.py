@@ -47,14 +47,28 @@ def update_device_time(from_service=False, emit_progress=None):
                 try:
                     gt.append(pool.spawn(update_device_time_single, info))
                 except Exception as e:
-                    pass
+                    logging.error("1: "+str(e))
         
+        device_with_battery_failing = []
         # Wait for all coroutines in the pool to finish
         for g in gt:
             try:
                 g.wait()
+            except BatteryFailingError as e:
+                logging.error(f"Error al actualizar la hora del dispositivo {e.ip}: {e}")
+                device_with_battery_failing.append(e.ip)
             except Exception as e:
                 logging.error(e)
+
+        logging.debug("Cantidad de dispositivos con fallos de pila: "+str(len(device_with_battery_failing)))
+        if len(device_with_battery_failing) > 0:
+            logging.debug("Dispositivos con fallos de pila: "+device_with_battery_failing)
+            for ip in device_with_battery_failing:
+                try:
+                    update_battery_status(ip)
+                except Exception as e:
+                    logging.error(f"Error al actualizar el estado de bateria del dispositivo {e.ip}: {e}")
+
 
         print('TERMINE HORA!')
         logging.debug('TERMINE HORA!')
@@ -68,3 +82,20 @@ def update_device_time_single(info):
         raise BatteryFailingError(info["model_name"], info["point"], info["ip"])
     except Exception as e:
         raise e
+
+def update_battery_status(p_ip):
+    with open('info_devices.txt', 'r') as file:
+        lines = file.readlines()
+
+    new_lines = []
+    for line in lines:
+        parts = line.strip().split(' - ')
+        ip = parts[3]
+        if ip == p_ip:
+            parts[6] = "False"
+        new_lines.append(' - '.join(parts) + '\n')
+
+    with open('info_devices.txt', 'w') as file:
+        file.writelines(new_lines)
+
+    logging.debug("Estado de bateria actualizado correctamente.")

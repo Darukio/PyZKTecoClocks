@@ -22,7 +22,7 @@ pyinstaller --noconsole --onefile --hidden-import=eventlet.hubs.epolls --hidden-
 ### Instalación de aplicación .exe
 ```bash
 # Ejecutar en cmd o PowerShell con permisos de admin
-pyinstaller.exe --noconsole --onefile --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone --hidden-import=dns.versioned -n "Gestor Reloj de Asistencias" -i "resources/fingerprint.ico"  --add-data "resources/system_tray/*;resources/system_tray" --add-data "resources/fingerprint.ico;resources/" --log-level=DEBUG --debug all main.py
+pyinstaller.exe --noconsole --clean --onefile --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone --hidden-import=dns.versioned -n "Programa Reloj de Asistencias" -i "resources/fingerprint.ico" --add-data "scripts/utils/errors.json;json/" --add-data "resources/window/*;resources/window" --add-data "resources/system_tray/*;resources/system_tray" --add-data "resources/fingerprint.ico;resources/" --log-level=DEBUG --debug all main.py
 ```
 
 ### Jerarquía de carpetas y módulos

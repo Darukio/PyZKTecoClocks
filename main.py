@@ -21,7 +21,7 @@ import eventlet
 
 from scripts.utils.errors import BaseError
 eventlet.monkey_patch()
-from schedulerService import check_and_install_service
+#from schedulerService import check_and_install_service
 import ctypes
 import subprocess
 from scripts.ui.message_box import MessageBox
@@ -35,7 +35,7 @@ import os
 import psutil
 
 # Versión del programa
-VERSION = "v2.2.39"
+VERSION = "v3.1.2"
 
 # Para leer un archivo INI
 from scripts import config
@@ -166,10 +166,10 @@ def main():
         run_as_admin()
 
     # Verificar si ya está ejecutándose una instancia duplicada
-    if verificar_instancia_duplicada(script_name):
-        cerrar_instancia_duplicada()
+    # if verificar_instancia_duplicada(script_name):
+    #    cerrar_instancia_duplicada()
 
-    check_and_install_service()
+    # check_and_install_service()
 
     config_log_console()
         

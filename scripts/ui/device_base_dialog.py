@@ -17,34 +17,12 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from scripts import config
+from scripts.ui.operation_thread import OperationThread
 from PyQt5.QtWidgets import QProgressBar, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QHeaderView, QLabel
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal
 import logging
 
 from scripts.ui.base_dialog import BaseDialog
-
-class OperationThread(QThread):
-    op_updated = pyqtSignal(dict)
-    op_terminated = pyqtSignal(float)
-    progress_updated = pyqtSignal(int, str, int, int)  # Signal for progress
-
-    def __init__(self, op_func, parent=None):
-        super().__init__(parent)
-        self.op_func = op_func
-
-    def run(self):
-        try:
-            import time
-            start_time = time.time()
-            self.result = self.op_func(emit_progress=self.emit_progress)
-            self.op_updated.emit(self.result)
-            self.op_terminated.emit(start_time)
-        except Exception as e:
-            logging.critical(e)
-
-    def emit_progress(self, percent_progress=None, device_progress=None, processed_devices=None, total_devices=None):
-        self.progress_updated.emit(percent_progress, device_progress, processed_devices, total_devices)  # Emit the progress signal
-
 
 # Definition of the common base class
 class DeviceBaseDialog(BaseDialog):
@@ -71,6 +49,7 @@ class DeviceBaseDialog(BaseDialog):
         layout = QVBoxLayout(self)
 
         self.table_widget = QTableWidget()
+        self.table_widget.setVisible(False)
         self.table_widget.setColumnCount(5)
         self.table_widget.setHorizontalHeaderLabels(header_labels)
         self.table_widget.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -114,6 +93,7 @@ class DeviceBaseDialog(BaseDialog):
 
     def update_table(self, device_status=None):
         try:
+            self.table_widget.setVisible(True)
             self.label_updating.setVisible(False)
             self.progress_bar.setVisible(False)  # Hide the progress bar when the update is complete
             logging.debug(device_status)
@@ -122,6 +102,7 @@ class DeviceBaseDialog(BaseDialog):
                 self.label_no_active_device.setVisible(True)
                 return
 
+            # Insert data into the table
             for row, (ip, device_info) in enumerate(device_status.items()):
                 self.table_widget.insertRow(row)
                 self.table_widget.setItem(row, 0, QTableWidgetItem(ip))
@@ -129,6 +110,8 @@ class DeviceBaseDialog(BaseDialog):
                 self.table_widget.setItem(row, 2, QTableWidgetItem(device_info.get("district_name", "")))
                 self.table_widget.setItem(row, 3, QTableWidgetItem(device_info.get("id", "")))
                 self.update_last_column(row, device_info)
+
+            self.adjust_size_to_table()
 
             self.table_widget.setSortingEnabled(True)
             self.table_widget.sortByColumn(4, Qt.AscendingOrder)            
