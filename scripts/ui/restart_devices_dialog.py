@@ -24,14 +24,14 @@ from PyQt5.QtWidgets import (
 import os
 import logging
 
-from scripts.business_logic.connection import restart_device
-from scripts.business_logic.device_manager import retry_network_operation
+from scripts.common.business_logic.connection import restart_device
+from scripts.common.business_logic.device_manager import retry_network_operation
 from scripts.ui.base_dialog import BaseDialog
 from scripts.ui.checkbox import CheckBoxDelegate
 from scripts.ui.combobox import ComboBoxDelegate
 from PyQt5.QtCore import Qt
 
-from scripts.utils.errors import BaseError, BaseErrorWithMessageBox, ConnectionFailedError
+from scripts.common.utils.errors import BaseError, BaseErrorWithMessageBox, ConnectionFailedError
 
 class RestartDevicesDialog(BaseDialog):
     def __init__(self, parent=None):

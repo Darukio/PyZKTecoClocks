@@ -27,9 +27,9 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import QDate
 from scripts.ui.base_dialog import BaseDialog
-from scripts.utils.errors import BaseErrorWithMessageBox
+from scripts.common.utils.errors import BaseErrorWithMessageBox
 from PyQt5.QtGui import QIcon
-from ..utils.file_manager import find_marker_directory, find_root_directory
+from scripts.common.utils.file_manager import find_marker_directory, find_root_directory
 
 LOGS_DIR = os.path.join(find_root_directory(), "logs")
 

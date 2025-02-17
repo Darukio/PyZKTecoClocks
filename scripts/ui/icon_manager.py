@@ -26,15 +26,14 @@ from scripts.ui.logs_dialog import LogsDialog
 from scripts.ui.modify_device_dialog import ModifyDevicesDialog
 from scripts.ui.ping_devices_dialog import PingDevicesDialog
 from scripts.ui.restart_devices_dialog import RestartDevicesDialog
-from ..utils.add_to_startup import *
-from ..utils.errors import *
-from ..utils.file_manager import *
-from ..business_logic.attendances_manager import *
-from ..business_logic.hour_manager import *
+from scripts.common.utils.add_to_startup import *
+from scripts.common.utils.errors import *
+from scripts.common.utils.file_manager import *
+from scripts.common.business_logic.attendances_manager import *
+from scripts.common.business_logic.hour_manager import *
 from scripts import config
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon
-from ..utils.add_to_startup import is_startup_entry_exists
 from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction, QMessageBox
 from PyQt5.QtCore import pyqtSlot
 
@@ -49,7 +48,7 @@ class MainWindow(QMainWindow):
         self.is_running = False  # Variable to indicate if the application is running
         logging.debug(config)
         self.checked_clear_attendance = eval(config['Device_config']['clear_attendance'])  # State of the clear attendance checkbox
-        self.checked_automatic_init = is_startup_entry_exists()
+        self.checked_automatic_init = is_startup_entry_exists("Programa Reloj de Asistencias")
 
         self.tray_icon = None  # Variable to store the QSystemTrayIcon
         self.__init_ui()  # Initialize the user interface
@@ -315,7 +314,7 @@ class MainWindow(QMainWindow):
 
             if self.checked_automatic_init:
                 logging.debug('add_to_startup')
-                add_to_startup()
+                add_to_startup("Programa Reloj de Asistencias")
             else:
                 logging.debug('remove_from_startup')
                 remove_from_startup()

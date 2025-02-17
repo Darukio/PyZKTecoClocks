@@ -18,9 +18,8 @@
 """
 
 import eventlet
-
-from scripts.utils.errors import BaseError
 eventlet.monkey_patch()
+from scripts.common.utils.errors import BaseError
 #from schedulerService import check_and_install_service
 import ctypes
 import subprocess
@@ -28,8 +27,8 @@ from scripts.ui.message_box import MessageBox
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QApplication
 from scripts.ui.icon_manager import MainWindow
-from scripts.utils.logging import config_log, logging
-from scripts.utils.file_manager import find_root_directory
+from scripts.common.utils.logging import config_log, logging
+from scripts.common.utils.file_manager import find_root_directory
 import sys
 import os
 import psutil
@@ -149,7 +148,7 @@ def cerrar_instancia_duplicada():
     sys.exit(0)  # Salir del script si se encuentra duplicado
 
 def main():
-    config_log()
+    config_log("program")
 
     import os
     logging.debug('Script executing...')

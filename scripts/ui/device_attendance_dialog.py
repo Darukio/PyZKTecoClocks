@@ -19,7 +19,7 @@
 
 # Subclass for the device status dialog
 import logging
-from scripts.business_logic.attendances_manager import manage_device_attendances
+from scripts.common.business_logic.attendances_manager import manage_device_attendances
 from scripts.business_logic.device_manager import activate_all_devices
 from scripts.ui.device_base_dialog import DeviceBaseDialog
 from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QLabel, QTableWidgetItem

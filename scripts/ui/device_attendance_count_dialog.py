@@ -18,7 +18,7 @@
 """
 
 # Subclass for the attendance count dialog
-from scripts.business_logic.attendances_manager import get_device_attendance_count
+from scripts.common.business_logic.attendances_manager import get_device_attendance_count
 from scripts.ui.device_base_dialog import DeviceBaseDialog
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtGui import QColor

@@ -22,7 +22,7 @@ import os
 from scripts.ui.base_dialog import BaseDialog
 from scripts.ui.checkbox import CheckBoxDelegate
 from scripts.ui.combobox import ComboBoxDelegate
-from scripts.utils.file_manager import find_root_directory
+from scripts.common.utils.file_manager import find_root_directory
 from ast import literal_eval
 from PyQt5.QtWidgets import QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QPushButton, QDialog, QHBoxLayout, QComboBox, QFormLayout, QLineEdit, QHeaderView
 

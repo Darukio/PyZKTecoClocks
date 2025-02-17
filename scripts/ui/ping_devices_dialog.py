@@ -21,7 +21,7 @@
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
-from scripts.business_logic.device_manager import ping_devices
+from scripts.common.business_logic.device_manager import ping_devices
 from scripts.ui.device_base_dialog import DeviceBaseDialog
 
 class PingDevicesDialog(DeviceBaseDialog):

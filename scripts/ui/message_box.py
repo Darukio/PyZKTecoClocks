@@ -21,12 +21,12 @@ import os
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QIcon
 
-from scripts.utils.file_manager import find_marker_directory
+from scripts.common.utils.file_manager import find_marker_directory
 
 # Subclass for the device status dialog
 class MessageBox(QMessageBox):
     def __init__(self, icon, text, parent=None):
-        super().__init__(icon, 'Gestor Reloj de Asistencias', text, parent)
+        super().__init__(icon, 'Programa Reloj de Asistencias', text, parent)
 
         file_path = os.path.join(find_marker_directory("resources"), "resources", "fingerprint.ico")
         self.setWindowIcon(QIcon(file_path))
