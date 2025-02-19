@@ -45,6 +45,7 @@ class ModifyDevicesDialog(BaseDialog):
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.table_widget.horizontalHeader().setStretchLastSection(True)
         self.table_widget.setEditTriggers(QTableWidget.DoubleClicked)
+        self.table_widget.setSortingEnabled(True)
 
         layout.addWidget(self.table_widget)
 
