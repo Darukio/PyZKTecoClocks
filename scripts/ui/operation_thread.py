@@ -25,16 +25,23 @@ class OperationThread(QThread):
     op_terminated = pyqtSignal(float)
     progress_updated = pyqtSignal(int, str, int, int)  # Signal for progress
 
-    def __init__(self, op_func, parent=None):
+    def __init__(self, op_func, selected_devices=None, parent=None):
         super().__init__(parent)
         self.op_func = op_func
+        self.selected_devices = selected_devices
 
     def run(self):
         try:
             import time
             start_time = time.time()
-            self.result = self.op_func(emit_progress=self.emit_progress)
-            self.op_updated.emit(self.result)
+            if self.selected_devices:
+                self.result = self.op_func(self.selected_devices, emit_progress=self.emit_progress)
+            else:
+                self.result = self.op_func(emit_progress=self.emit_progress)
+            if self.result is None:
+                self.op_updated.emit({})
+            else:
+                self.op_updated.emit(self.result)
             self.op_terminated.emit(start_time)
         except Exception as e:
             logging.critical(e)
