@@ -1,4 +1,5 @@
 [submodule "scripts/common"]
 	path = scripts/common
 	url = https://github.com/Darukio/PyZKTecoClocksCommon.git
-	update = rebase
+    update = checkout
+    branch = main
