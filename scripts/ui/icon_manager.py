@@ -37,6 +37,8 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction, QMessageBox
 from PyQt5.QtCore import pyqtSlot
 
+from scripts.ui.update_time_device_dialog import UpdateTimeDeviceDialog
+
 config.read(os.path.join(find_root_directory(), 'config.ini'))  # Read the config.ini configuration file
 
 class MainWindow(QMainWindow):
@@ -80,7 +82,7 @@ class MainWindow(QMainWindow):
             menu.addAction(self.__create_action("Modificar dispositivos...", lambda: self.__opt_modify_devices()))  # Action to modify devices
             menu.addAction(self.__create_action("Reiniciar dispositivos...", lambda: self.__opt_restart_devices()))  # Action to restart devices    
             menu.addAction(self.__create_action("Probar conexiones...", lambda: self.__opt_test_connections()))  # Action to test connections
-            menu.addAction(self.__create_action("Actualizar hora", lambda: self.__opt_update_devices_time()))  # Action to update device time
+            menu.addAction(self.__create_action("Actualizar hora...", lambda: self.__opt_update_devices_time()))  # Action to update device time
             menu.addAction(self.__create_action("Obtener marcaciones...", lambda: self.__opt_fetch_devices_attendances()))  # Action to fetch device attendances
             menu.addAction(self.__create_action("Obtener cantidad de marcaciones...", lambda: self.__opt_show_attendances_count()))  # Action to show attendance count
             menu.addSeparator()  # Context menu separator
@@ -153,8 +155,8 @@ class MainWindow(QMainWindow):
         """
         end_time = self.start_timer()  # Get the end time
         elapsed_time = end_time - start_time  # Calculate the elapsed time
-        logging.debug(f'The task finished in {elapsed_time:.2f} seconds')
-        self.tray_icon.showMessage("Notificación", f'The task finished in {elapsed_time:.2f} seconds', QSystemTrayIcon.Information)  # Show notification with the elapsed time
+        logging.debug(f'La tarea finalizó en {elapsed_time:.2f} segundos')
+        self.tray_icon.showMessage("Notificación", f'La tarea finalizó en {elapsed_time:.2f} segundos', QSystemTrayIcon.Information)  # Show notification with the elapsed time
 
     def __update_running_service(self, is_running):
         self.is_running = is_running
@@ -249,11 +251,15 @@ class MainWindow(QMainWindow):
         """
         Option to update the time on devices.
         """
-        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
-        start_time = self.start_timer()  # Start the timer
-        update_device_time()  # Call function to update time on devices (assumed to be defined elsewhere)
-        self.stop_timer(start_time)  # Stop the timer and show notification
-        #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+        try:
+            update_time_device_dialog = UpdateTimeDeviceDialog()  # Get device status
+            update_time_device_dialog.exec_()
+            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
+            # Once the QMessageBox is closed, show the context menu again
+            if self.tray_icon:
+                self.tray_icon.contextMenu().setVisible(True)
+        except Exception as e:
+            logging.error(f"Error al mostrar conexiones de dispositivos: {e}")  # Log error if the operation fails
 
     @pyqtSlot()
     def __opt_fetch_devices_attendances(self):
@@ -317,7 +323,7 @@ class MainWindow(QMainWindow):
                 add_to_startup("Programa Reloj de Asistencias")
             else:
                 logging.debug('remove_from_startup')
-                remove_from_startup()
+                remove_from_startup("Programa Reloj de Asistencias")
 
     @pyqtSlot()
     def __opt_exit_icon(self):
