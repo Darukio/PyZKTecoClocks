@@ -50,10 +50,11 @@ ERROR_CODES_DICT = {
     "2000": "Error de dispositivo",
     "2001": "Error de pila fallando",
     "2002": "Error al reiniciar el dispositivo",
+    "2003": "Error de fecha incorrecta en marcacion",
     "3000": "Error de aplicacion",
     "3001": "Error de carga de archivo",
     "3500": "Error de interfaz grafica",
-    "3501": "Error al inicializar ventana"
+    "3501": "Error al inicializar ventana",
 }
 ERROR_CODES_SET = set(ERROR_CODES_DICT.keys())
 
@@ -83,7 +84,6 @@ class LogsDialog(BaseDialog):
             self.error_list.itemSelectionChanged.connect(self.load_logs)  # Dynamic filtering on selection change
 
             for code, description in ERROR_CODES_DICT.items():
-                logging.debug(f"Error code: {code} - Description: {description}")
                 item = QListWidgetItem(f"[{code}] {description}")
                 item.setData(1, code)  # Store only the error code as data
                 self.error_list.addItem(item)
@@ -120,7 +120,7 @@ class LogsDialog(BaseDialog):
             # Load logs at startup
             self.load_logs()
         except Exception as e:
-            BaseErrorWithMessageBox(3003, str(e))
+            BaseErrorWithMessageBox(3003, str(e), parent=self)
 
     def toggle_error_list(self):
         """Toggle the visibility of the error list."""
@@ -140,21 +140,32 @@ class LogsDialog(BaseDialog):
     def get_error_logs(self, start_date, end_date, selected_errors):
         """Retrieve error logs within the date range, filtered by selected errors."""
         error_entries = []
-        pattern = re.compile(r"(\d{4}-\d{2}-\d{2}).* - \w+ - \[(\d{4})\]")  # Capture date and error code
+        pattern = re.compile(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - \w+ - \[(\d{4})\]")  # Capture date, time, and error code
+
+        log_files = {
+            "program_error": "program_error.log",
+            "icon_for_service_error": "icon_for_service_error.log",
+            "service_error": "service_error.log"
+        }
 
         for folder in os.listdir(LOGS_DIR):
             folder_path = os.path.join(LOGS_DIR, folder)
-            log_path = os.path.join(folder_path, "program_error.log")
+            if os.path.isdir(folder_path):
+                for source, log_file in log_files.items():
+                    log_path = os.path.join(folder_path, log_file)
+                    if os.path.exists(log_path):
+                        with open(log_path, "r", encoding="utf-8", errors="replace") as log_file:
+                            for line in log_file:
+                                match = pattern.search(line)
+                                if match:
+                                    log_datetime, error_code = match.groups()
+                                    log_date = log_datetime.split()[0]
+                                    if start_date <= log_date <= end_date:
+                                        # Show all errors if none are selected, otherwise filter
+                                        if not selected_errors or error_code in selected_errors:
+                                            error_entries.append(f"{source}: {line.strip()}")
 
-            if os.path.isdir(folder_path) and os.path.exists(log_path):
-                with open(log_path, "r", encoding="utf-8", errors="replace") as log_file:
-                    for line in log_file:
-                        match = pattern.search(line)
-                        if match:
-                            log_date, error_code = match.groups()
-                            if start_date <= log_date <= end_date:
-                                # Show all errors if none are selected, otherwise filter
-                                if not selected_errors or error_code in selected_errors:
-                                    error_entries.append(line.strip())
+        # Sort the entries by date and time
+        error_entries.sort(key=lambda x: re.search(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})", x).group(1))
 
         return error_entries
