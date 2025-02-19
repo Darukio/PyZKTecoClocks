@@ -6,3 +6,4 @@ pyqt5
 pywin32
 schedule
 psutil
+python-dateutil
