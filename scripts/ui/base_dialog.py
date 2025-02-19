@@ -42,7 +42,7 @@ class BaseDialog(QDialog):
 
             self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         except Exception as e:
-            BaseErrorWithMessageBox(3003, str(e))
+            BaseErrorWithMessageBox(3003, str(e), parent=self)
 
     def init_ui(self):
         pass
