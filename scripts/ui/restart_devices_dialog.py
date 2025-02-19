@@ -19,19 +19,17 @@
 
 from PyQt5.QtWidgets import (
     QVBoxLayout, QTableWidget, QTableWidgetItem,
-    QPushButton, QHeaderView, QMessageBox
+    QPushButton, QHeaderView, QMessageBox, QProgressBar, QLabel
 )
 import os
 import logging
-
-from scripts.common.business_logic.connection import restart_device
-from scripts.common.business_logic.device_manager import retry_network_operation
+from scripts.business_logic.device_manager import restart_devices
 from scripts.ui.base_dialog import BaseDialog
 from scripts.ui.checkbox import CheckBoxDelegate
 from scripts.ui.combobox import ComboBoxDelegate
 from PyQt5.QtCore import Qt
-
-from scripts.common.utils.errors import BaseError, BaseErrorWithMessageBox, ConnectionFailedError
+from scripts.common.utils.errors import BaseError, BaseErrorWithMessageBox
+from scripts.ui.operation_thread import OperationThread
 
 class RestartDevicesDialog(BaseDialog):
     def __init__(self, parent=None):
@@ -49,7 +47,7 @@ class RestartDevicesDialog(BaseDialog):
         # Table to display devices
         self.table_widget = QTableWidget()
         self.table_widget.setColumnCount(7)
-        self.table_widget.setHorizontalHeaderLabels(["Distrito", "Modelo", "Punto de Marcación", "IP", "ID", "Comunicación", "Seleccionar reinicio"])
+        self.table_widget.setHorizontalHeaderLabels(["Distrito", "Modelo", "Punto de Marcación", "IP", "ID", "Comunicación", "Reiniciar"])
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.table_widget.horizontalHeader().setStretchLastSection(True)
         layout.addWidget(self.table_widget)
@@ -58,6 +56,19 @@ class RestartDevicesDialog(BaseDialog):
         self.btn_restart = QPushButton("Reiniciar dispositivos")
         self.btn_restart.clicked.connect(self.restart_selected_devices)
         layout.addWidget(self.btn_restart)
+
+        self.label_updating = QLabel("Actualizando datos...", self)
+        self.label_updating.setAlignment(Qt.AlignCenter)
+        self.label_updating.setVisible(False)
+        layout.addWidget(self.label_updating)
+
+        # Progress bar
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setVisible(False)  # Hide the progress bar initially
+        layout.addWidget(self.progress_bar)
 
         self.setLayout(layout)
 
@@ -129,20 +140,36 @@ class RestartDevicesDialog(BaseDialog):
             checkbox = self.table_widget.cellWidget(row, 6)
             if checkbox and checkbox.isChecked():
                 ip = self.table_widget.item(row, 3).text()
-                communication = self.table_widget.item(row, 5).text()
-                selected_devices.append((ip, communication))
+                selected_devices.append({"ip": ip})
 
         if not selected_devices:
             QMessageBox.information(self, "Sin selección", "No se seleccionaron dispositivos para reiniciar.")
             return
+        
+        try:
+            self.label_updating.setText("Actualizando datos...")
+            self.btn_restart.setVisible(False)
+            self.label_updating.setVisible(True)
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setValue(0)
+            logging.debug(f"Selected devices: {selected_devices}")
+            self.op_thread = OperationThread(restart_devices, selected_devices)
+            self.op_thread.progress_updated.connect(self.update_progress)  # Connect the progress signal
+            self.op_thread.op_updated.connect(self.terminate_op)
+            self.op_thread.start()
+        except Exception as e:
+            logging.error(f"Error al reiniciar dispositivos: {e}")
 
-        for ip, communication in selected_devices:
+    def terminate_op(self, devices_with_error=None):
+        if len(devices_with_error) > 0:
+            BaseErrorWithMessageBox(2002, f"{', '.join(devices_with_error.keys())}", parent=self)
+        else:
+            QMessageBox.information(self, "Éxito", "Dispositivos reiniciados correctamente.")
+        self.btn_restart.setVisible(True)
+        self.label_updating.setVisible(False)
+        self.progress_bar.setVisible(False)
 
-            try:
-                retry_network_operation(restart_device, args=(ip, 4370, communication,))
-                QMessageBox.information(self, "Éxito", "Dispositivos reiniciados correctamente.")
-                logging.info(f"Dispositivo IP: {ip} reiniciado correctamente.")
-            except ConnectionFailedError as e:
-                BaseErrorWithMessageBox(2002, str(e))
-            except Exception as e:
-                BaseError(0000, str(e))
+    def update_progress(self, percent_progress, device_progress, processed_devices, total_devices):
+        if percent_progress and device_progress:
+            self.progress_bar.setValue(percent_progress)  # Update the progress bar value
+            self.label_updating.setText(f"Último intento de conexión: {device_progress}\n{processed_devices}/{total_devices} dispositivos")
