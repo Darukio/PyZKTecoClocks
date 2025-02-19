@@ -24,7 +24,6 @@ from PyQt5.QtWidgets import (
 import os
 import logging
 from scripts.common.business_logic.hour_manager import update_device_time
-from scripts.ui import device_attendance_count_dialog
 from scripts.ui.base_dialog import BaseDialog
 from scripts.ui.checkbox import CheckBoxDelegate
 from scripts.ui.combobox import ComboBoxDelegate
