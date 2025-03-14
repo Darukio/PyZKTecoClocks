@@ -22,8 +22,8 @@ import os
 import eventlet
 import configparser
 config = configparser.ConfigParser()
-from scripts.common.business_logic.connection import restart_device
-from scripts.common.business_logic.device_manager import get_device_info, retry_network_operation
+from scripts.common.business_logic.connection_manager import ping_device
+from scripts.common.business_logic.device_manager import get_device_info, network_operation_with_retry
 from scripts.common.business_logic.shared_state import SharedState
 from scripts.common.utils.errors import ConnectionFailedError, NetworkError
 from scripts.common.utils.file_manager import find_root_directory
@@ -77,7 +77,7 @@ def restart_devices(selected_devices=None, emit_progress=None):
         
         for active_device in active_devices:
             try:
-                gt.append(pool.spawn(restart_device_single, active_device, emit_progress, state))
+                gt.append(pool.spawn(device_operation_with_retry, "restart_device", active_device, emit_progress, state))
             except Exception as e:
                 pass
 
@@ -98,9 +98,61 @@ def restart_devices(selected_devices=None, emit_progress=None):
             return devices_with_error
         return
         
-def restart_device_single(info, emit_progress, state):
+def ping_devices(selected_devices=None, emit_progress=None):
+    device_info = []
     try:
-        retry_network_operation(restart_device, args=(info['ip'], 4370, info['communication'],))
+        # Get all devices in a formatted list
+        device_info = get_device_info()
+    except Exception as e:
+        logging.error(e)
+
+    results = {}
+
+    if device_info:
+        gt = []
+        active_devices = []
+        config.read(os.path.join(find_root_directory(), 'config.ini'))
+        coroutines_pool_max_size = int(config['Cpu_config']['coroutines_pool_max_size'])
+
+        # Create a pool of green threads
+        state = SharedState()
+        pool = eventlet.GreenPool(coroutines_pool_max_size)
+        
+        if selected_devices:
+            selected_ips = {device['ip'] for device in selected_devices}
+
+            active_devices = [device for device in device_info if device['ip'] in selected_ips]
+
+        # Set the total number of devices in the shared state
+        state.set_total_devices(len(active_devices))
+        
+        for active_device in active_devices:
+            try:
+                gt.append(pool.spawn(device_operation_with_retry, "ping_device", active_device, emit_progress, state))
+            except Exception as e:
+                pass
+
+        for active_device, g in zip(active_devices, gt):
+            response = g.wait()
+            if response:
+                connection_failed = False
+            else:
+                connection_failed = True
+
+            # Save the information in results
+            results[active_device["ip"]] = { "connection failed": connection_failed }
+
+        print('TERMINE PING!')
+        logging.debug('TERMINE PING!')
+
+    return results
+
+def device_operation_with_retry(operation, info, emit_progress, state):
+    try:
+        if operation == "restart_device":
+            network_operation_with_retry(operation, ip=info['ip'], port=4370, communication=info['communication'])
+        elif operation == "ping_device":
+            return ping_device(info["ip"], 4370)
     except ConnectionFailedError as e:
         raise NetworkError(info['model_name'], info['point'], info['ip'])
     except Exception as e:

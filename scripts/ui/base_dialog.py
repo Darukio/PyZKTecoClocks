@@ -20,7 +20,7 @@
 from PyQt5.QtWidgets import QDialog, QSizePolicy
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from scripts.common.utils.errors import BaseErrorWithMessageBox
+from scripts.common.utils.errors import BaseError
 from scripts.common.utils.file_manager import find_marker_directory
 import os
 
@@ -42,7 +42,7 @@ class BaseDialog(QDialog):
 
             self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         except Exception as e:
-            BaseErrorWithMessageBox(3003, str(e), parent=self)
+            raise BaseError(3501, str(e))
 
     def init_ui(self):
         pass
@@ -61,3 +61,8 @@ class BaseDialog(QDialog):
         
         # Adjust the main window size
         self.resize(table_width + 120, table_height)  # Extra adjustment for margins and button bar
+    
+    def center_window(self):
+        screen = self.screen()  # Get the current screen
+        screen_rect = screen.availableGeometry()  # Get screen available geometry
+        self.move(screen_rect.center() - self.rect().center())  # Move to center

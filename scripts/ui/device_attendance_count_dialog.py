@@ -19,22 +19,33 @@
 
 # Subclass for the attendance count dialog
 from scripts.common.business_logic.attendances_manager import get_device_attendance_count
-from scripts.ui.device_base_dialog import DeviceBaseDialog
+from scripts.common.utils.errors import BaseError
+from scripts.ui.base_device_dialog import BaseDeviceDialog
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
 
-class DeviceAttendancesCountDialog(DeviceBaseDialog):
+class DeviceAttendancesCountDialog(BaseDeviceDialog):
     def __init__(self, parent=None):
+        try:
+            super().__init__(parent, get_device_attendance_count, "OBTENER CANT. MARCACIONES")
+            self.init_ui()
+        except Exception as e:
+            raise BaseError(3501, str(e))
+
+    def init_ui(self):
         header_labels = ["IP", "Punto de Marcación", "Nombre de Distrito", "ID", "Cant. de Marcaciones"]
-        super().__init__(parent, get_device_attendance_count, "Obtener cantidad de marcaciones", header_labels)
+        super().init_ui(header_labels)
         self.btn_update.setText("Obtener cant. de marcaciones")
 
     def update_last_column(self, row, device_info):
-        status_item = QTableWidgetItem(device_info.get("attendance_count", ""))
-        if device_info.get("attendance_count") == "Conexión fallida":
-            status_item.setBackground(QColor(Qt.red))
-        else:
-            status_item.setBackground(QColor(Qt.green))
-        
-        self.table_widget.setItem(row, 4, status_item)
+        try:
+            status_item = QTableWidgetItem(device_info.get("attendance_count", ""))
+            if device_info.get("attendance_count") == "Conexión fallida":
+                status_item.setBackground(QColor(Qt.red))
+            else:
+                status_item.setBackground(QColor(Qt.green))
+            
+            self.table_widget.setItem(row, 4, status_item)
+        except Exception as e:
+            raise BaseError(3500, str(e))

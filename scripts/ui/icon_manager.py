@@ -16,64 +16,75 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 import logging
 import os
+import sys
 import time
 from scripts.business_logic.device_manager import activate_all_devices
+from scripts.common.utils.add_to_startup import add_to_startup, is_startup_entry_exists, remove_from_startup
+from scripts.common.utils.errors import BaseError
+from scripts.common.utils.file_manager import find_marker_directory, find_root_directory
 from scripts.ui.device_attendance_count_dialog import DeviceAttendancesCountDialog
 from scripts.ui.device_attendance_dialog import DeviceAttendancesDialog
 from scripts.ui.logs_dialog import LogsDialog
 from scripts.ui.modify_device_dialog import ModifyDevicesDialog
 from scripts.ui.ping_devices_dialog import PingDevicesDialog
 from scripts.ui.restart_devices_dialog import RestartDevicesDialog
-from scripts.common.utils.add_to_startup import *
-from scripts.common.utils.errors import *
-from scripts.common.utils.file_manager import *
-from scripts.common.business_logic.attendances_manager import *
-from scripts.common.business_logic.hour_manager import *
 from scripts import config
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QAction, QMessageBox
 from PyQt5.QtCore import pyqtSlot
-
 from scripts.ui.update_time_device_dialog import UpdateTimeDeviceDialog
+from scripts.common.utils.system_utils import exit_duplicated_instance, verify_duplicated_instance
 
 config.read(os.path.join(find_root_directory(), 'config.ini'))  # Read the config.ini configuration file
 
 class MainWindow(QMainWindow):
-    MAX_RETRIES = 30  # Maximum number of retries to start the service
-    service_name = "GESTOR_RELOJ_ASISTENCIA"  # Service name
-
     def __init__(self):
-        super().__init__()
-        self.is_running = False  # Variable to indicate if the application is running
-        logging.debug(config)
-        self.checked_clear_attendance = eval(config['Device_config']['clear_attendance'])  # State of the clear attendance checkbox
-        self.checked_automatic_init = is_startup_entry_exists("Programa Reloj de Asistencias")
+        try:
+            super().__init__()
+            self.is_running = False  # Variable to indicate if the application is running
+            self.checked_clear_attendance = eval(config['Device_config']['clear_attendance'])  # State of the clear attendance checkbox
+            self.checked_automatic_init = is_startup_entry_exists("Programa Reloj de Asistencias")
 
-        self.tray_icon = None  # Variable to store the QSystemTrayIcon
-        self.__init_ui()  # Initialize the user interface
+            self.tray_icon = None  # Variable to store the QSystemTrayIcon
+            self.__init_ui()  # Initialize the user interface
 
-        activate_all_devices()  # Activate all devices
+            # Set the initial tray icon to loading.png
+            file_path = os.path.join(find_marker_directory("resources"), "resources", "system_tray", "loading.png")  # Icon file path
+            logging.debug(file_path)
+            self.tray_icon.setIcon(QIcon(file_path))
+
+            """ if not is_user_admin():
+                run_as_admin()
+            """
+
+            if verify_duplicated_instance(sys.argv[0]):
+                exit_duplicated_instance()
+
+            activate_all_devices()  # Activate all devices
+
+            # Change the tray icon to program-icon.png after all initializations
+            file_path = os.path.join(find_marker_directory("resources"), "resources", "system_tray", "program-icon.png")  # Icon file path
+            logging.debug(file_path)
+            self.tray_icon.setIcon(QIcon(file_path))
+        except Exception as e:
+            raise BaseError(3501, str(e), "critical")
 
     def __init_ui(self):
-        self.setWindowTitle('Ventana principal')  # Main window title
-        self.setGeometry(100, 100, 400, 300)  # Main window geometry (position and size)
-
         # Create and configure the system tray icon
-        self.color_icon = "red"  # Initial icon color
         self.__create_tray_icon()  # Create the system tray icon        
 
     def __create_tray_icon(self):
         '''
         Create a system tray icon with a custom context menu
         '''
-        file_path = os.path.join(find_marker_directory("resources"), "resources", "system_tray", "program-icon.png")  # Icon file path
-        logging.debug(file_path)
-
         try:
-            self.tray_icon = QSystemTrayIcon(QIcon(file_path), self)  # Create QSystemTrayIcon with the icon and associated main window
+            file_path = os.path.join(find_marker_directory("resources"), "resources", "system_tray", "loading.png")  # Icon file path
+            logging.debug(file_path)
+            self.tray_icon = QSystemTrayIcon(QIcon(), self)  # Create QSystemTrayIcon with the icon and associated main window
             self.tray_icon.showMessage("Notificación", 'Iniciando la aplicación', QSystemTrayIcon.Information)
             self.tray_icon.setToolTip("Programa Reloj de Asistencias")  # Tooltip text
 
@@ -92,7 +103,6 @@ class MainWindow(QMainWindow):
             clear_attendance_action.setChecked(self.checked_clear_attendance)  # Set initial checkbox state
             clear_attendance_action.triggered.connect(self.__opt_toggle_checkbox_clear_attendance)  # Connect action to toggle checkbox state
             menu.addAction(clear_attendance_action)  # Add action to the menu
-
             logging.debug(f'checked_automatic_init: {self.checked_automatic_init}')
             # Action to toggle the checkbox state
             automatic_init_action = QAction('Iniciar automáticamente', menu)
@@ -104,11 +114,10 @@ class MainWindow(QMainWindow):
             menu.addAction(self.__create_action("Ver errores...", lambda: self.__opt_show_logs()))  # Action to show logs
             menu.addAction(self.__create_action("Salir", lambda: self.__opt_exit_icon()))  # Action to exit the application
             self.tray_icon.setContextMenu(menu)  # Assign context menu to the icon
-
+            
+            self.tray_icon.show()  # Show the system tray icon
         except Exception as e:
-            logging.error(f"Error al crear el ícono en la bandeja del sistema: {e}")
-
-        self.tray_icon.show()  # Show the system tray icon
+            raise BaseError(3500, str(e), "critical")
 
     def __create_action(self, text, function):
         """
@@ -155,11 +164,8 @@ class MainWindow(QMainWindow):
         """
         end_time = self.start_timer()  # Get the end time
         elapsed_time = end_time - start_time  # Calculate the elapsed time
-        logging.debug(f'La tarea finalizó en {elapsed_time:.2f} segundos')
-        self.tray_icon.showMessage("Notificación", f'La tarea finalizó en {elapsed_time:.2f} segundos', QSystemTrayIcon.Information)  # Show notification with the elapsed time
-
-    def __update_running_service(self, is_running):
-        self.is_running = is_running
+        logging.debug(f'La tarea finalizo en {elapsed_time:.2f} segundos')
+        self.tray_icon.showMessage("Notificacion", f'La tarea finalizo en {elapsed_time:.2f} segundos', QSystemTrayIcon.Information)  # Show notification with the elapsed time
 
     def __show_message_information(self, title, text):
         """
@@ -184,67 +190,58 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def __opt_modify_devices(self):
         """
-        Option to test device connections.
+        Option to modify devices.
         """
-        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
-            device_dialog = ModifyDevicesDialog()  # Get device status
+            device_dialog = ModifyDevicesDialog()
             device_dialog.exec_()
-            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
-            # Once the QMessageBox is closed, show the context menu again
+            # Once the QDialog is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
         except Exception as e:
-            logging.error(f"Error al modificar dispositivos: {e}")  # Log error if the operation fails
+            BaseError(3500, str(e))
 
     @pyqtSlot()
     def __opt_show_logs(self):
         """
         Option to show logs.
         """
-        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
-            error_log_dialog = LogsDialog()  # Get device status
+            error_log_dialog = LogsDialog()
             error_log_dialog.exec_()
-            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
-            # Once the QMessageBox is closed, show the context menu again
+            # Once the QDialog is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
         except Exception as e:
-            logging.error(f"Error al mostrar conexiones de dispositivos: {e}")  # Log error if the operation fails
+            BaseError(3500, str(e))
 
     @pyqtSlot()
     def __opt_restart_devices(self):
         """
         Option to restart devices.
         """
-        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
-            restart_devices_dialog = RestartDevicesDialog()  # Get device status
+            restart_devices_dialog = RestartDevicesDialog()
             restart_devices_dialog.exec_()
-            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
-            # Once the QMessageBox is closed, show the context menu again
+            # Once the QDialog is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
         except Exception as e:
-            logging.error(f"Error al mostrar reinicio dispositivos: {e}")  # Log error if the operation fails
+            BaseError(3500, str(e))
 
     @pyqtSlot()
     def __opt_test_connections(self):
         """
         Option to test device connections.
         """
-        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
             device_status_dialog = PingDevicesDialog()  # Get device status
-            device_status_dialog.op_terminated.connect(self.stop_timer)
             device_status_dialog.exec_()
-            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
-            # Once the QMessageBox is closed, show the context menu again
+            # Once the QDialog is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
         except Exception as e:
-            logging.error(f"Error al mostrar conexiones de dispositivos: {e}")  # Log error if the operation fails
+            BaseError(3500, str(e))
 
     @pyqtSlot()
     def __opt_update_devices_time(self):
@@ -252,48 +249,43 @@ class MainWindow(QMainWindow):
         Option to update the time on devices.
         """
         try:
-            update_time_device_dialog = UpdateTimeDeviceDialog()  # Get device status
+            update_time_device_dialog = UpdateTimeDeviceDialog()
             update_time_device_dialog.exec_()
-            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
-            # Once the QMessageBox is closed, show the context menu again
+            # Once the QDialog is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
         except Exception as e:
-            logging.error(f"Error al mostrar conexiones de dispositivos: {e}")  # Log error if the operation fails
+            BaseError(3500, str(e))
 
     @pyqtSlot()
     def __opt_fetch_devices_attendances(self):
         """
         Option to fetch device attendances.
         """
-        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
             device_attendances_dialog = DeviceAttendancesDialog()
             device_attendances_dialog.op_terminated.connect(self.stop_timer)
             device_attendances_dialog.exec_()
-            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
-            # Once the QMessageBox is closed, show the context menu again
+            # Once the QDialog is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
         except Exception as e:
-            logging.error(f"Error al obtener marcaciones: {e}")  # Log error if the operation fails
+            BaseError(3500, str(e))
 
     @pyqtSlot()
     def __opt_show_attendances_count(self):
         """
         Option to show the number of attendances per device.
         """
-        #self.__set_icon_color(self.tray_icon, "yellow")  # Set the icon color to yellow
         try:
             device_attendances_count_dialog = DeviceAttendancesCountDialog()
             device_attendances_count_dialog.op_terminated.connect(self.stop_timer)
             device_attendances_count_dialog.exec_()
-            #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
-            # Once the QMessageBox is closed, show the context menu again
+            # Once the QDialog is closed, show the context menu again
             if self.tray_icon:
                 self.tray_icon.contextMenu().setVisible(True)
         except Exception as e:
-            logging.error(f"Error al mostrar cantidad de marcaciones: {e}")  # Log error if the operation fails
+            BaseError(3500, str(e))
 
     @pyqtSlot()
     def __opt_toggle_checkbox_clear_attendance(self):
@@ -305,8 +297,11 @@ class MainWindow(QMainWindow):
         # Modify the value of the desired field in the configuration file
         config['Device_config']['clear_attendance'] = str(self.checked_clear_attendance)
         # Write the changes back to the configuration file
-        with open('config.ini', 'w') as config_file:
-            config.write(config_file)
+        try:
+            with open('config.ini', 'w') as config_file:
+                config.write(config_file)
+        except Exception as e:
+            BaseError(3001, str(e))
 
     @pyqtSlot()
     def __opt_toggle_checkbox_automatic_init(self):
@@ -314,16 +309,19 @@ class MainWindow(QMainWindow):
         Option to toggle the state of the run at startup checkbox.
         """
         import sys
-        if getattr(sys, 'frozen', False):
-            self.checked_automatic_init = not self.checked_automatic_init  # Invert the current checkbox state
-            logging.debug(f"Status checkbox: {self.checked_automatic_init}")  # Debug log: current checkbox state
+        try:
+            if getattr(sys, 'frozen', False):
+                self.checked_automatic_init = not self.checked_automatic_init  # Invert the current checkbox state
+                logging.debug(f"Status checkbox: {self.checked_automatic_init}")  # Debug log: current checkbox state
 
-            if self.checked_automatic_init:
-                logging.debug('add_to_startup')
-                add_to_startup("Programa Reloj de Asistencias")
-            else:
-                logging.debug('remove_from_startup')
-                remove_from_startup("Programa Reloj de Asistencias")
+                if self.checked_automatic_init:
+                    logging.debug('add_to_startup')
+                    add_to_startup("Programa Reloj de Asistencias")
+                else:
+                    logging.debug('remove_from_startup')
+                    remove_from_startup("Programa Reloj de Asistencias")
+        except Exception as e:
+            BaseError(3000, str(e))
 
     @pyqtSlot()
     def __opt_exit_icon(self):
@@ -331,23 +329,5 @@ class MainWindow(QMainWindow):
         Option to exit the application.
         """
         if self.tray_icon:
-            # if len(schedule.get_jobs()) >= 1:
-            #self.__opt_stop_execution()  # Stop the execution if there are scheduled jobs
             self.tray_icon.hide()  # Hide the system tray icon
             QApplication.quit()  # Exit the application
-
-    def thread_manage_device_attendances(self):
-        #self.__set_icon_color(self.tray_icon, "yellow")
-        try:
-            manage_device_attendances(from_service=True)
-        except Exception as e:
-            logging.critical(e)
-        #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status
-
-    def thread_update_device_time(self):
-        #self.__set_icon_color(self.tray_icon, "yellow")
-        try:
-            update_device_time(from_service=True)
-        except Exception as e:
-            logging.critical(e)
-        #self.__set_icon_color(self.tray_icon, "green" if self.is_running else "red")  # Restore icon color based on execution status

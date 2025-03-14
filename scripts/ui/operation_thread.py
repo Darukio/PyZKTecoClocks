@@ -17,8 +17,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import logging
 from PyQt5.QtCore import QThread, pyqtSignal
+from scripts.common.utils.errors import BaseError
 
 class OperationThread(QThread):
     op_updated = pyqtSignal(dict)
@@ -44,7 +44,7 @@ class OperationThread(QThread):
                 self.op_updated.emit(self.result)
             self.op_terminated.emit(start_time)
         except Exception as e:
-            logging.critical(e)
+            raise BaseError(3000, str(e), "critical")
 
     def emit_progress(self, percent_progress=None, device_progress=None, processed_devices=None, total_devices=None):
         self.progress_updated.emit(percent_progress, device_progress, processed_devices, total_devices)  # Emit the progress signal

@@ -23,11 +23,11 @@ import re
 import json
 from PyQt5.QtWidgets import (
     QVBoxLayout, QTextEdit, QDateEdit, QPushButton, QLabel, 
-    QHBoxLayout, QListWidget, QListWidgetItem
+    QHBoxLayout, QListWidget, QListWidgetItem, QLineEdit
 )
 from PyQt5.QtCore import QDate
 from scripts.ui.base_dialog import BaseDialog
-from scripts.common.utils.errors import BaseErrorWithMessageBox
+from scripts.common.utils.errors import BaseError
 from PyQt5.QtGui import QIcon
 from scripts.common.utils.file_manager import find_marker_directory, find_root_directory
 
@@ -37,32 +37,26 @@ LOGS_DIR = os.path.join(find_root_directory(), "logs")
 ERROR_CODES_DICT = {}
 ERROR_CODES_SET = set()
 
-#errors_file = os.path.join(find_marker_directory("json"), "json", "errors.json")
-#if os.path.exists(errors_file):
-#    with open(errors_file, encoding="utf-8", errors="replace") as f:
-#        ERROR_CODES_DICT = json.load(f)  # Dictionary of error codes and descriptions
-#        ERROR_CODES_SET = set(ERROR_CODES_DICT.keys())  # Set of error codes
-
-ERROR_CODES_DICT = {
-    "0000": "Error desconocido",
-    "1000": "Error al conectar con el dispositivo",
-    "1001": "Error de red",
-    "2000": "Error de dispositivo",
-    "2001": "Error de pila fallando",
-    "2002": "Error al reiniciar el dispositivo",
-    "2003": "Error de fecha incorrecta en marcacion",
-    "3000": "Error de aplicacion",
-    "3001": "Error de carga de archivo",
-    "3500": "Error de interfaz grafica",
-    "3501": "Error al inicializar ventana",
-}
-ERROR_CODES_SET = set(ERROR_CODES_DICT.keys())
+try:
+    errors_file = os.path.join(find_marker_directory("json"), "json", "errors.json")
+    if os.path.exists(errors_file):
+        try:
+            with open(errors_file, encoding="utf-8", errors="replace") as f:
+                ERROR_CODES_DICT = json.load(f)  # Dictionary of error codes and descriptions
+                ERROR_CODES_SET = set(ERROR_CODES_DICT.keys())  # Set of error codes
+        except Exception as e:
+            BaseError(3001, str(e))
+except Exception as e:
+    BaseError(3501, str(e))
 
 class LogsDialog(BaseDialog):
     def __init__(self):
-        super().__init__(window_title="Visor de Logs")
-        self.init_ui()
-        super().init_ui()
+        try:
+            super().__init__(window_title="VISOR DE LOGS")
+            self.init_ui()
+            super().init_ui()
+        except Exception as e:
+            raise BaseError(3501, str(e))
 
     def init_ui(self):
         try:
@@ -77,6 +71,11 @@ class LogsDialog(BaseDialog):
             self.end_date_edit.setDate(QDate.currentDate())
             self.end_date_edit.editingFinished.connect(self.load_logs)  # Dynamic filtering on date change
 
+            # Text search filter
+            self.text_search_edit = QLineEdit(self)
+            self.text_search_edit.setPlaceholderText("Buscar texto en los logs...")
+            self.text_search_edit.textChanged.connect(self.load_logs)  # Dynamic filtering on text change
+
             # Error selection list (initially hidden)
             self.error_list = QListWidget(self)
             self.error_list.setSelectionMode(QListWidget.MultiSelection)
@@ -88,14 +87,29 @@ class LogsDialog(BaseDialog):
                 item.setData(1, code)  # Store only the error code as data
                 self.error_list.addItem(item)
 
-            # Button to toggle the error list visibility with an SVG icon
+            # Source selection list
+            self.source_list = QListWidget(self)
+            self.source_list.setSelectionMode(QListWidget.MultiSelection)
+            self.source_list.setVisible(False)  # Initially hide the source list
+            self.source_list.itemSelectionChanged.connect(self.load_logs)  # Dynamic filtering on selection change
+
+            sources = ["program_error", "icon_for_service_error", "service_error"]
+            for source in sources:
+                item = QListWidgetItem(source)
+                item.setData(1, source)  # Store the source as data
+                self.source_list.addItem(item)
+
+            # Button to toggle the filter lists visibility with an SVG icon
             self.toggle_filter_button = QPushButton(self)
             self.file_path_filter = os.path.join(self.file_path_resources, "window", "filter-right.svg")
             self.toggle_filter_button.setIcon(QIcon(self.file_path_filter))  # Set SVG icon
-            self.toggle_filter_button.clicked.connect(self.toggle_error_list)
+            self.toggle_filter_button.clicked.connect(self.toggle_filter_visibility)
 
             self.select_errors_label = QLabel("Selecciona los errores a filtrar (vacío = todos):")
             self.select_errors_label.setVisible(False)
+
+            self.select_sources_label = QLabel("Selecciona las fuentes a filtrar (vacío = todas):")
+            self.select_sources_label.setVisible(False)
 
             # Layout for filters
             filter_layout = QHBoxLayout()
@@ -103,7 +117,28 @@ class LogsDialog(BaseDialog):
             filter_layout.addWidget(self.start_date_edit)
             filter_layout.addWidget(QLabel("Hasta:"))
             filter_layout.addWidget(self.end_date_edit)
-            filter_layout.addWidget(self.toggle_filter_button)  # Button to toggle the error list
+            filter_layout.addWidget(QLabel("Buscar:"))
+            filter_layout.addWidget(self.text_search_edit)
+            filter_layout.addWidget(self.toggle_filter_button)  # Button to toggle the filter lists
+
+            # Layout for error list
+            error_list_layout = QVBoxLayout()
+            error_list_layout.addWidget(self.select_errors_label)
+            error_list_layout.addWidget(self.error_list)
+            error_list_layout.setStretch(0, 0)
+            error_list_layout.setStretch(1, 1)
+
+            # Layout for source list
+            source_list_layout = QVBoxLayout()
+            source_list_layout.addWidget(self.select_sources_label)
+            source_list_layout.addWidget(self.source_list)
+            source_list_layout.setStretch(0, 0)
+            source_list_layout.setStretch(1, 1)
+
+            # Combine error and source list layouts
+            filter_lists_layout = QHBoxLayout()
+            filter_lists_layout.addLayout(error_list_layout)
+            filter_lists_layout.addLayout(source_list_layout)
 
             # Text widget to display logs
             self.text_edit = QTextEdit(self)
@@ -112,60 +147,78 @@ class LogsDialog(BaseDialog):
             # Main layout
             layout = QVBoxLayout()
             layout.addLayout(filter_layout)
-            layout.addWidget(self.select_errors_label)
-            layout.addWidget(self.error_list)
+            layout.addLayout(filter_lists_layout)
             layout.addWidget(self.text_edit)
             self.setLayout(layout)
+            layout.setStretch(0, 0)  # filter_layout ocupa lo necesario
+            layout.setStretch(1, 0)  # filter_lists_layout ocupa lo necesario
+            layout.setStretch(2, 1)  # text_edit (logs) se expande al máximo
 
             # Load logs at startup
             self.load_logs()
         except Exception as e:
-            BaseErrorWithMessageBox(3003, str(e), parent=self)
+            raise BaseError(3501, str(e), parent=self)
 
-    def toggle_error_list(self):
-        """Toggle the visibility of the error list."""
-        self.select_errors_label.setVisible(not self.select_errors_label.isVisible())
-        self.error_list.setVisible(not self.error_list.isVisible())
+    def toggle_filter_visibility(self):
+        """Toggle the visibility of error and source lists."""
+        try:
+            self.select_errors_label.setVisible(not self.select_errors_label.isVisible())
+            self.error_list.setVisible(not self.error_list.isVisible())
+            self.select_sources_label.setVisible(not self.select_sources_label.isVisible())
+            self.source_list.setVisible(not self.source_list.isVisible())
+        except Exception as e:
+            raise BaseError(3500, str(e))
 
     def load_logs(self):
-        """Load error logs filtered by date and selected error codes."""
-        start_date = self.start_date_edit.date().toString("yyyy-MM-dd")
-        end_date = self.end_date_edit.date().toString("yyyy-MM-dd")
+        """Load error logs filtered by date, selected error codes, selected sources, and text search."""
+        try:
+            start_date = self.start_date_edit.date().toString("yyyy-MM-dd")
+            end_date = self.end_date_edit.date().toString("yyyy-MM-dd")
+            search_text = self.text_search_edit.text().lower()
 
-        selected_errors = {item.data(1) for item in self.error_list.selectedItems()}
-        
-        error_logs = self.get_error_logs(start_date, end_date, selected_errors)
-        self.text_edit.setPlainText("\n".join(error_logs))
+            selected_errors = {item.data(1) for item in self.error_list.selectedItems()}
+            selected_sources = {item.data(1) for item in self.source_list.selectedItems()}
+            
+            error_logs = self.get_error_logs(start_date, end_date, selected_errors, selected_sources, search_text)
+            self.text_edit.setPlainText("\n".join(error_logs))
+        except Exception as e:
+            raise BaseError(3500, str(e))
 
-    def get_error_logs(self, start_date, end_date, selected_errors):
-        """Retrieve error logs within the date range, filtered by selected errors."""
-        error_entries = []
-        pattern = re.compile(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - \w+ - \[(\d{4})\]")  # Capture date, time, and error code
+    def get_error_logs(self, start_date, end_date, selected_errors, selected_sources, search_text):
+        """Retrieve error logs within the date range, filtered by selected errors, sources, and search text."""
+        try:
+            error_entries = []
+            
+            pattern = re.compile(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - \w+ - \[(\d{4})\]")  # Capture date, time, and error code
 
-        log_files = {
-            "program_error": "program_error.log",
-            "icon_for_service_error": "icon_for_service_error.log",
-            "service_error": "service_error.log"
-        }
+            log_files = {
+                "program_error": "program_error.log",
+                "icon_for_service_error": "icon_for_service_error.log",
+                "service_error": "service_error.log"
+            }
 
-        for folder in os.listdir(LOGS_DIR):
-            folder_path = os.path.join(LOGS_DIR, folder)
-            if os.path.isdir(folder_path):
-                for source, log_file in log_files.items():
-                    log_path = os.path.join(folder_path, log_file)
-                    if os.path.exists(log_path):
-                        with open(log_path, "r", encoding="utf-8", errors="replace") as log_file:
-                            for line in log_file:
-                                match = pattern.search(line)
-                                if match:
-                                    log_datetime, error_code = match.groups()
-                                    log_date = log_datetime.split()[0]
-                                    if start_date <= log_date <= end_date:
-                                        # Show all errors if none are selected, otherwise filter
-                                        if not selected_errors or error_code in selected_errors:
-                                            error_entries.append(f"{source}: {line.strip()}")
+            for folder in os.listdir(LOGS_DIR):
+                folder_path = os.path.join(LOGS_DIR, folder)
+                if os.path.isdir(folder_path):
+                    for source, log_file in log_files.items():
+                        if selected_sources and source not in selected_sources:
+                            continue
+                        log_path = os.path.join(folder_path, log_file)
+                        if os.path.exists(log_path):
+                            with open(log_path, "r", encoding="utf-8", errors="replace") as log_file:
+                                for line in log_file:
+                                    match = pattern.search(line)
+                                    if match:
+                                        log_datetime, error_code = match.groups()
+                                        log_date = log_datetime.split()[0]
+                                        if start_date <= log_date <= end_date:
+                                            # Show all errors if none are selected, otherwise filter
+                                            if (not selected_errors or error_code in selected_errors) and (not search_text or search_text in line.lower()):
+                                                error_entries.append(f"{source}: {line.strip()}")
 
-        # Sort the entries by date and time
-        error_entries.sort(key=lambda x: re.search(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})", x).group(1))
-
-        return error_entries
+            # Sort the entries by date and time
+            error_entries.sort(key=lambda x: re.search(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})", x).group(1))
+            
+            return error_entries
+        except Exception as e:
+            raise BaseError(3500, str(e))

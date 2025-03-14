@@ -1,4 +1,3 @@
-git+https://github.com/Darukio/pyzk.git
 eventlet
 pillow
 pyinstaller

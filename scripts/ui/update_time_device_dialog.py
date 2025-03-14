@@ -18,161 +18,113 @@
 """
 
 from PyQt5.QtWidgets import (
-    QVBoxLayout, QTableWidget, QTableWidgetItem,
-    QPushButton, QHeaderView, QMessageBox, QProgressBar, QLabel
+    QTableWidgetItem
 )
-import os
-import logging
-from scripts.common.business_logic.hour_manager import update_device_time
-from scripts.ui.base_dialog import BaseDialog
-from scripts.ui.checkbox import CheckBoxDelegate
-from scripts.ui.combobox import ComboBoxDelegate
-from PyQt5.QtCore import Qt
+from scripts.common.business_logic.hour_manager import update_devices_time
 from scripts.common.utils.errors import BaseError, BaseErrorWithMessageBox
-from scripts.ui.operation_thread import OperationThread
+from scripts.ui.base_select_devices_dialog import SelectDevicesDialog
+from PyQt5.QtGui import QColor
+from PyQt5.QtCore import Qt
+import logging
 
-class UpdateTimeDeviceDialog(BaseDialog):
+class UpdateTimeDeviceDialog(SelectDevicesDialog):
     def __init__(self, parent=None):
-        super().__init__(parent, window_title="Actualizar hora de dispositivos")
-
-        # Path to the file with device information
-        self.file_path = os.path.join(os.getcwd(), "info_devices.txt")
-        self.data = []
-        self.init_ui()
-        super().init_ui()
-
-    def init_ui(self):
-        layout = QVBoxLayout(self)
-
-        # Table to display devices
-        self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(7)
-        self.table_widget.setHorizontalHeaderLabels(["Distrito", "Modelo", "Punto de Marcación", "IP", "ID", "Comunicación", "Actualizar hora"])
-        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.table_widget.horizontalHeader().setStretchLastSection(True)
-        layout.addWidget(self.table_widget)
-
-        # Button to restart selected devices
-        self.btn_update_hour = QPushButton("Actualizar hora")
-        self.btn_update_hour.clicked.connect(self.update_time_selected_devices)
-        layout.addWidget(self.btn_update_hour)
-
-        self.label_updating = QLabel("Actualizando datos...", self)
-        self.label_updating.setAlignment(Qt.AlignCenter)
-        self.label_updating.setVisible(False)
-        layout.addWidget(self.label_updating)
-
-        # Progress bar
-        self.progress_bar = QProgressBar(self)
-        self.progress_bar.setMinimum(0)
-        self.progress_bar.setMaximum(100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setVisible(False)  # Hide the progress bar initially
-        layout.addWidget(self.progress_bar)
-
-        self.setLayout(layout)
-
-        # Load initial data
-        self.load_data()
-
-    def load_data(self):
-        """Load devices from the file and display them in the table."""
         try:
-            self.data = []
-            with open(self.file_path, "r") as file:
+            super().__init__(parent, op_function=update_devices_time, window_title="ACTUALIZAR HORA")
+            self.device_info = self.load_device_info()
+            self.init_ui()
+        except Exception as e:
+            raise BaseError(3501, str(e))
+        
+    def init_ui(self):
+        header_labels = ["Distrito", "Modelo", "Punto de Marcación", "IP", "ID", "Comunicación"]
+        super().init_ui(header_labels=header_labels)
+        self.btn_update.setText("Actualizar hora")
+
+    def load_device_info(self):
+        """Load device information from the file."""
+        device_info = {}
+        try:
+            with open("info_devices.txt", "r") as file:
                 for line in file:
                     parts = line.strip().split(" - ")
                     if len(parts) == 8:
-                        district, model, point, ip, id, communication, battery, active = parts
-                        self.data.append((district, model, point, ip, id, communication))
-            self.load_data_into_table()
+                        ip = parts[3]
+                        battery_status = parts[6] == "True"
+                        device_info[ip] = battery_status
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo cargar la información: {e}")
+            raise BaseErrorWithMessageBox(3001, str(e), parent=self)
+        return device_info
 
-    def load_data_into_table(self):
-        """Fill the table with device data."""
-        self.table_widget.setRowCount(0)
-
-        for row, (district, model, point, ip, id, communication) in enumerate(self.data):
-            self.table_widget.insertRow(row)
-
-            # Create non-editable cells
-            item_district = QTableWidgetItem(district)
-            item_district.setFlags(item_district.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 0, item_district)
-
-            item_model = QTableWidgetItem(model)
-            item_model.setFlags(item_model.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 1, item_model)
-
-            item_point = QTableWidgetItem(point)
-            item_point.setFlags(item_point.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 2, item_point)
-
-            item_ip = QTableWidgetItem(ip)
-            item_ip.setFlags(item_ip.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 3, item_ip)
-
-            item_id = QTableWidgetItem(str(id))
-            item_id.setFlags(item_id.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 4, item_id)
-
-            # Configure ComboBoxDelegate for column 5 but disable editing
-            combo_box_delegate = ComboBoxDelegate(self.table_widget)
-            self.table_widget.setItemDelegateForColumn(5, combo_box_delegate)
-
-            # Display the value as text, not editable
-            item_communication = QTableWidgetItem(communication)
-            item_communication.setFlags(item_communication.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(row, 5, item_communication)
-
-            # Configure CheckBox in column 6 (interactive)
-            checkbox = CheckBoxDelegate()
-            checkbox.setChecked(False)
-            self.table_widget.setCellWidget(row, 6, checkbox)
-
-        self.adjust_size_to_table()
-
-    def update_time_selected_devices(self):
-        """Update the time of the selected devices."""
-        selected_devices = []
-        for row in range(self.table_widget.rowCount()):
-            checkbox = self.table_widget.cellWidget(row, 6)
-            if checkbox and checkbox.isChecked():
-                ip = self.table_widget.item(row, 3).text()
-                selected_devices.append({"ip": ip})
-
-        if not selected_devices:
-            QMessageBox.information(self, "Sin selección", "No se seleccionaron dispositivos para actualizar la hora.")
-            return
-        
+    def op_terminate(self, devices=None):
         try:
-            self.label_updating.setText("Actualizando datos...")
-            self.btn_update_hour.setVisible(False)
-            self.label_updating.setVisible(True)
-            self.progress_bar.setVisible(True)
-            self.progress_bar.setValue(0)
-            logging.debug(f"Selected devices: {selected_devices}")
-            self.op_thread = OperationThread(update_device_time, selected_devices)
-            self.op_thread.progress_updated.connect(self.update_progress)  # Connect the progress signal
-            self.op_thread.op_updated.connect(self.terminate_op)
-            self.op_thread.start()
-        except Exception as e:
-            logging.error(f"Error al reiniciar dispositivos: {e}")
+            self.table_widget.setVisible(False)
+            self.table_widget.sortByColumn(3, Qt.DescendingOrder)
 
-    def terminate_op(self, devices_with_error=None):
-        if devices_with_error is not None:
-            if len(devices_with_error) > 0:
-                BaseErrorWithMessageBox(2002, f"{', '.join(devices_with_error.keys())}", parent=self)
+            if not self.column_exists("Estado de Conexión"):
+                # Add a new column to the table
+                connection_column = self.table_widget.columnCount()
+                self.table_widget.setColumnCount(connection_column + 1)
+                self.table_widget.setHorizontalHeaderItem(connection_column, QTableWidgetItem("Estado de Conexión"))
             else:
-                QMessageBox.information(self, "Éxito", "Hora actualizada correctamente.")
-        else:
-            QMessageBox.information(self, "Éxito", "Hora actualizada correctamente.")
-        self.btn_update_hour.setVisible(True)
-        self.label_updating.setVisible(False)
-        self.progress_bar.setVisible(False)
+                # Get the column number
+                connection_column = self.get_column_number("Estado de Conexión")
 
-    def update_progress(self, percent_progress, device_progress, processed_devices, total_devices):
-        if percent_progress and device_progress:
-            self.progress_bar.setValue(percent_progress)  # Update the progress bar value
-            self.label_updating.setText(f"Último intento de conexión: {device_progress}\n{processed_devices}/{total_devices} dispositivos")
+            if not self.column_exists("Estado de Pila"):
+                # Add a new column to the table
+                battery_column = self.table_widget.columnCount()
+                self.table_widget.setColumnCount(battery_column + 1)
+                self.table_widget.setHorizontalHeaderItem(battery_column, QTableWidgetItem("Estado de Pila"))
+            else:
+                # Get the column number
+                battery_column = self.get_column_number("Estado de Pila")
+
+            selected_ips = {device["ip"] for device in self.selected_devices}
+            
+            for row in range (self.table_widget.rowCount()):
+                ip_selected = self.table_widget.item(row, 3).text()  # Column 3 holds the IP
+                connection_item = QTableWidgetItem("")
+                battery_item = QTableWidgetItem("")
+                if ip_selected not in selected_ips:
+                    connection_item.setBackground(QColor(Qt.white))
+                    battery_item.setBackground(QColor(Qt.white))
+                else:
+                    connection_item.setBackground(QColor(Qt.blue))
+                    battery_item.setBackground(QColor(Qt.blue))
+                    logging.debug(devices)
+                    device = devices.get(ip_selected)
+                    if device:
+                        if device.get("connection failed"):
+                            connection_item.setText("Conexión fallida")
+                            connection_item.setBackground(QColor(Qt.red))
+                        else:
+                            connection_item.setText("Conexión exitosa")
+                            connection_item.setBackground(QColor(Qt.green))
+                        if device.get("connection failed"):
+                            battery_item.setText("No aplica")
+                            battery_item.setBackground(QColor(Qt.gray))
+                        else:
+                            logging.debug(f"Device: {device}")
+                            battery_failing = device.get("battery failing") or not self.device_info.get(ip_selected, True)
+                            if battery_failing:
+                                battery_item.setText("Pila fallando")
+                                battery_item.setBackground(QColor(Qt.red))
+                            else:
+                                battery_item.setText("Pila funcionando")
+                                battery_item.setBackground(QColor(Qt.green))
+                connection_item.setFlags(connection_item.flags() & ~Qt.ItemIsEditable)
+                self.table_widget.setItem(row, connection_column, connection_item)
+                battery_item.setFlags(battery_item.flags() & ~Qt.ItemIsEditable)
+                self.table_widget.setItem(row, battery_column, battery_item)
+
+            self.adjust_size_to_table()
+
+            self.table_widget.setSortingEnabled(True)
+            self.table_widget.sortByColumn(6, Qt.DescendingOrder)    
+
+            self.deselect_all_rows()
+            super().op_terminate()
+            self.table_widget.setVisible(True)
+        except Exception as e:
+            logging.error(e)
+            raise BaseErrorWithMessageBox(3500, str(e), parent=self)

@@ -19,6 +19,7 @@
 
 import logging
 import os
+from scripts.common.utils.errors import BaseError, BaseErrorWithMessageBox
 from scripts.ui.base_dialog import BaseDialog
 from scripts.ui.checkbox import CheckBoxDelegate
 from scripts.ui.combobox import ComboBoxDelegate
@@ -28,13 +29,16 @@ from PyQt5.QtWidgets import QMessageBox, QTableWidget, QTableWidgetItem, QHeader
 
 class ModifyDevicesDialog(BaseDialog):
     def __init__(self, parent=None):
-        super().__init__(parent, window_title="Modificar dispositivos")
-                
-        self.file_path = os.path.join(find_root_directory(), "info_devices.txt")
-        self.data = []
-        self.max_id = 0
-        self.init_ui()
-        super().init_ui()
+        try:
+            super().__init__(parent, window_title="MODIFICAR DISPOSITIVOS")
+                    
+            self.file_path = os.path.join(find_root_directory(), "info_devices.txt")
+            self.data = []
+            self.max_id = 0
+            self.init_ui()
+            super().init_ui()
+        except Exception as e:
+            raise BaseError(3501, str(e))
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -125,33 +129,36 @@ class ModifyDevicesDialog(BaseDialog):
                         self.max_id = max(self.max_id, int(id))  # Update max_id
                         data.append((district, model, point, ip, id, communication, literal_eval(battery), literal_eval(active)))
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al cargar datos: {e}")
+            raise BaseErrorWithMessageBox(3001, str(e), parent=self)
         return data
 
     def load_data_into_table(self):
-        self.table_widget.setRowCount(0)
-        for row, (district, model, point, ip, id, communication, battery, active) in enumerate(self.data):
-            self.table_widget.insertRow(row)
-            self.table_widget.setItem(row, 0, QTableWidgetItem(district))
-            self.table_widget.setItem(row, 1, QTableWidgetItem(model))
-            self.table_widget.setItem(row, 2, QTableWidgetItem(point))
-            self.table_widget.setItem(row, 3, QTableWidgetItem(ip))
-            self.table_widget.setItem(row, 4, QTableWidgetItem(str(id)))
-            # Set ComboBoxDelegate for column 5
-            combo_box_delegate = ComboBoxDelegate(self.table_widget)
-            self.table_widget.setItemDelegateForColumn(5, combo_box_delegate)
-            # Set the value in the model for column 5
-            self.table_widget.setItem(row, 5, QTableWidgetItem(communication))
-            # Set CheckBoxDelegate for column 6
-            checkbox_battery = CheckBoxDelegate()
-            checkbox_battery.setChecked(battery)
-            self.table_widget.setCellWidget(row, 6, checkbox_battery)
-            # Set CheckBoxDelegate for column 7
-            checkbox_active = CheckBoxDelegate()
-            checkbox_active.setChecked(active)
-            self.table_widget.setCellWidget(row, 7, checkbox_active)
+        try:
+            self.table_widget.setRowCount(0)
+            for row, (district, model, point, ip, id, communication, battery, active) in enumerate(self.data):
+                self.table_widget.insertRow(row)
+                self.table_widget.setItem(row, 0, QTableWidgetItem(district))
+                self.table_widget.setItem(row, 1, QTableWidgetItem(model))
+                self.table_widget.setItem(row, 2, QTableWidgetItem(point))
+                self.table_widget.setItem(row, 3, QTableWidgetItem(ip))
+                self.table_widget.setItem(row, 4, QTableWidgetItem(str(id)))
+                # Set ComboBoxDelegate for column 5
+                combo_box_delegate = ComboBoxDelegate(self.table_widget)
+                self.table_widget.setItemDelegateForColumn(5, combo_box_delegate)
+                # Set the value in the model for column 5
+                self.table_widget.setItem(row, 5, QTableWidgetItem(communication))
+                # Set CheckBoxDelegate for column 6
+                checkbox_battery = CheckBoxDelegate()
+                checkbox_battery.setChecked(battery)
+                self.table_widget.setCellWidget(row, 6, checkbox_battery)
+                # Set CheckBoxDelegate for column 7
+                checkbox_active = CheckBoxDelegate()
+                checkbox_active.setChecked(active)
+                self.table_widget.setCellWidget(row, 7, checkbox_active)
 
-        self.adjust_size_to_table()
+            self.adjust_size_to_table()
+        except Exception as e:
+            raise BaseErrorWithMessageBox(3500, str(e), parent=self)
 
     def save_data(self):
         try:
@@ -169,15 +176,18 @@ class ModifyDevicesDialog(BaseDialog):
                     file.write(f"{district} - {model} - {point} - {ip} - {id} - {communication} - {battery} - {active}\n")
             QMessageBox.information(self, "Éxito", "Datos guardados correctamente.")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al guardar datos: {e}")
+            raise BaseErrorWithMessageBox(3001, str(e), parent=self)
 
 class AddDevicesDialog(QDialog):
     def __init__(self, parent=None, id=0):
-        super().__init__(parent)
-        self.setWindowTitle("Agregar nuevo dispositivo")
-        self.setMinimumSize(400, 300)
-        self.id = id
-        self.init_ui()
+        try:
+            super().__init__(parent)
+            self.setWindowTitle("Agregar nuevo dispositivo")
+            self.setMinimumSize(400, 300)
+            self.id = id
+            self.init_ui()
+        except Exception as e:
+            raise BaseError(3501, str(e))
 
     def init_ui(self):
         layout = QVBoxLayout(self)
