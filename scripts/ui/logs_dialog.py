@@ -203,9 +203,9 @@ class LogsDialog(BaseDialog):
             layout.addLayout(filter_lists_layout)
             layout.addWidget(self.text_edit)
             self.setLayout(layout)
-            layout.setStretch(0, 0)  # filter_layout ocupa lo necesario
-            layout.setStretch(1, 0)  # filter_lists_layout ocupa lo necesario
-            layout.setStretch(2, 1)  # text_edit (logs) se expande al máximo
+            layout.setStretch(0, 0)  # filter_layout takes only the space it needs
+            layout.setStretch(1, 0)  # filter_lists_layout takes only the space it needs
+            layout.setStretch(2, 1)  # text_edit (logs) expands to fill the remaining space
 
             # Load logs at startup
             self.load_logs()

@@ -198,7 +198,7 @@ class ObtainAttendancesDevicesDialog(SelectDevicesDialog):
         """
         parts = line.split()
         if len(parts) < 3:
-            return None  # Línea mal formada
+            return None
         try:
             date_str, time_str = parts[1], parts[2]
             timestamp: datetime = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M")
@@ -209,111 +209,119 @@ class ObtainAttendancesDevicesDialog(SelectDevicesDialog):
     def check_attendance_files(self):
         """
         Checks attendance files in the "devices" directory for errors.
-        Se lleva un registro diario (en un archivo temporal) de cada marcación incorrecta ya reportada,
-        de modo que las nuevas se reporten una sola vez. Para el reporte, se agrupa la información por archivo,
-        mostrando cada error una sola vez (por file_path) como en la versión original.
-        
+        A daily record (in a temporary file) is kept of each already reported incorrect check‑in,
+        so that new ones are only reported once. For reporting, information is grouped by file,
+        displaying each error only once (by file_path) as in the original version.
+
         Raises:
-            BaseError: Si no se encuentra la carpeta 'devices' o si se detectan errores en las marcaciones.
+            BaseError: if the 'devices' folder is not found or if attendance errors are detected.
         """
         import tempfile
         from datetime import timedelta
-        # Obtener fecha actual y de ayer
+
+        # Get today's and yesterday's dates
         today_str = datetime.now().strftime("%Y-%m-%d")
         yesterday_str = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-        
+
         devices_path = os.path.join(find_root_directory(), "devices")
         temp_dir = tempfile.gettempdir()
         # logging.debug(f"Directorio temporal: {temp_dir}")
-        # Archivo temporal para el día actual y para el de ayer
-        temp_file_path = os.path.join(temp_dir, f"reported_incorrect_attendances_{today_str}.tmp")
-        temp_file_yesterday = os.path.join(temp_dir, f"reported_incorrect_attendances_{yesterday_str}.tmp")
-        
-        # Eliminar el archivo del día anterior (si existe)
+
+        # Temporary file for today and yesterday
+        temp_file_path = os.path.join(
+            temp_dir,
+            f"reported_incorrect_attendances_{today_str}.tmp"
+        )
+        temp_file_yesterday = os.path.join(
+            temp_dir,
+            f"reported_incorrect_attendances_{yesterday_str}.tmp"
+        )
+
+        # Remove yesterday's file if it exists
         if os.path.exists(temp_file_yesterday):
             try:
                 os.remove(temp_file_yesterday)
             except Exception as e:
                 logging.warning(f"No se pudo eliminar el archivo de ayer: {e}")
-        
-        # Cargar errores ya reportados hoy: cada línea es un identificador único de error (file_path + línea)
+
+        # Load errors already reported today: each line is a unique error identifier (file_path + line)
         reported_errors = set()
         if os.path.exists(temp_file_path):
             with open(temp_file_path, "r", encoding="utf-8") as tf:
                 for line in tf:
                     reported_errors.add(line.strip())
-        
-        new_reported = set()            # Nuevos errores encontrados (por línea)
-        files_with_new_errors = {}      # Agrupa por archivo (clave: file.path, valor: resumen para reporte)
+
+        new_reported = set()            # Newly found errors (by line)
+        files_with_new_errors = {}      # Grouped by file: key = file.path, value = info for report
 
         if not os.path.isdir(devices_path):
             raise BaseError(3000, "No se encontró la carpeta 'devices'", level="warning")
-        
-        # Recorrer la carpeta de dispositivos
+
+        # Traverse the devices directory
         with os.scandir(devices_path) as entries:
             for subfolder in entries:
                 if not subfolder.is_dir():
                     continue
-                
+
                 subfolder_path = os.path.join(devices_path, subfolder.name)
                 with os.scandir(subfolder_path) as sub_entries:
                     for sub_entry in sub_entries:
                         if not sub_entry.is_dir():
                             continue
-                        
+
                         with os.scandir(sub_entry.path) as files:
                             for file in files:
                                 if today_str in file.name and file.name.endswith(".cro"):
-                                    file_has_new_error = False  # Bandera para determinar si el archivo tiene errores nuevos
-                                    
+                                    file_has_new_error = False  # Flag for new errors in this file
+
                                     with open(file.path, "r", encoding="utf-8") as f:
-                                        # Revisar línea por línea para identificar errores de marcación
+                                        # Check each line for attendance errors
                                         for line_number, line in enumerate(f, start=1):
                                             attendance = Attendance(timestamp=self.parse_attendance(line))
                                             if attendance is not None and (
                                                 attendance.is_three_months_old() or attendance.is_in_the_future()
                                             ):
-                                                # Generar un identificador único para esta línea de error
+                                                # Create a unique identifier for this error line
                                                 error_id = str(line)
                                                 if error_id in reported_errors:
-                                                    continue  # Este error ya se reportó
-                                                
-                                                # Error nuevo encontrado
+                                                    continue  # This error was already reported
+
+                                                # New error found
                                                 new_reported.add(error_id)
                                                 file_has_new_error = True
-                                                # Para la visualización en el reporte, basta con saber que el archivo tiene al menos un error.
-                                                # Si se quiere continuar revisando el archivo para registrar todos los nuevos errores (aunque se mostrará un solo enlace), no se rompe el bucle.
-                                                # break  # <-- Si se quiere reportar solo la primera ocurrencia por archivo, descomentar.
-                                    
+                                                # To continue scanning the file for all new errors (even though only one link per file is shown),
+                                                # do not break here. Uncomment the next line to only report the first occurrence per file.
+                                                # break
+
                                     if file_has_new_error:
-                                        # Solo se agrega una entrada por archivo, como en la versión original
+                                        # Add one entry per file, as in the original version
                                         if file.path not in files_with_new_errors:
                                             files_with_new_errors[file.path] = {
                                                 "ip": self.extract_ip(file.name),
                                                 "date": self.extract_date(file.name),
                                                 "file_path": self.format_file_uri(file.path)
                                             }
-        
-        # Actualizar el archivo temporal con los nuevos errores encontrados
+
+        # Append newly found errors to the temporary file
         if new_reported:
             with open(temp_file_path, "a", encoding="utf-8") as tf:
                 for err in new_reported:
-                    tf.write(err)
-        
-        # Generar el reporte a partir de los archivos que tienen errores nuevos
+                    tf.write(err + "\n")
+
+        # Build report from files that have new errors
         devices_with_error = list(files_with_new_errors.values())
         if devices_with_error:
             error_info = (
                 "<html><br>" +
                 "<br>".join(
-                    [f"- <a href='{device['file_path']}'>{device['date']}: {device['ip']}</a>" 
+                    [f"- <a href='{device['file_path']}'>{device['date']}: {device['ip']}</a>"
                     for device in devices_with_error]
                 ) +
                 "</html>"
             )
             error_code = 2003
             error = BaseError(error_code, error_info)
-            
+
             config.read(os.path.join(find_root_directory(), 'config.ini'))
             clear_attendance: bool = config.getboolean('Device_config', 'clear_attendance')
             if clear_attendance:

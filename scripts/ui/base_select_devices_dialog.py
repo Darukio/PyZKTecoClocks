@@ -63,7 +63,6 @@ class SelectDevicesDialog(BaseDialog):
         try:
             layout = QVBoxLayout(self)
 
-            # NUEVOS INPUTS NUMÉRICOS
             from PyQt5.QtWidgets import QHBoxLayout
 
             self.inputs_widget = QWidget()
