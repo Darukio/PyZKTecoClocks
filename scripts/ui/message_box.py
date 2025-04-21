@@ -20,13 +20,21 @@
 import os
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QIcon
-
 from scripts.common.utils.errors import BaseError
 from scripts.common.utils.file_manager import find_marker_directory
 
 # Subclass for the device status dialog
 class MessageBox(QMessageBox):
     def __init__(self, icon, text, parent=None):
+        """
+        Initializes the custom message box with the specified icon, text, and optional parent widget.
+        Args:
+            icon (QMessageBox.Icon): The icon to display in the message box.
+            text (str): The text message to display in the message box.
+            parent (QWidget, optional): The parent widget of the message box. Defaults to None.
+        Raises:
+            BaseError: If an error occurs during initialization, a BaseError with code 3501 is raised.
+        """
         try:
             super().__init__(icon, 'Programa Reloj de Asistencias', text, parent)
 
