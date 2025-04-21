@@ -30,6 +30,7 @@ from scripts.ui.base_dialog import BaseDialog
 from scripts.common.utils.errors import BaseError
 from PyQt5.QtGui import QIcon
 from scripts.common.utils.file_manager import find_marker_directory, find_root_directory
+from version import PROGRAM_VERSION, SERVICE_VERSION
 
 LOGS_DIR = os.path.join(find_root_directory(), "logs")
 
@@ -51,6 +52,17 @@ except Exception as e:
 
 class LogsDialog(BaseDialog):
     def __init__(self):
+        """
+        Initializes the LogsDialog class.
+
+        This constructor sets up the LogsDialog instance by calling the parent
+        class initializer with a specific window title, initializing the user
+        interface, and handling any exceptions that may occur during the process.
+
+        Raises:
+            BaseError: If an exception occurs during initialization, it is wrapped
+                       in a BaseError with code 3501 and the exception message.
+        """
         try:
             super().__init__(window_title="VISOR DE LOGS")
             self.init_ui()
@@ -59,6 +71,47 @@ class LogsDialog(BaseDialog):
             raise BaseError(3501, str(e))
 
     def init_ui(self):
+        """
+        Initializes the user interface for the logs dialog.
+        This method sets up the UI components, including date selection widgets, 
+        text search filter, error and source selection lists, and a text display 
+        area for logs. It also configures the layout and connects signals to 
+        dynamically filter logs based on user input.
+        UI Components:
+            - Date Selection Widgets:
+                * `start_date_edit`: QDateEdit for selecting the start date.
+                * `end_date_edit`: QDateEdit for selecting the end date.
+            - Text Search Filter:
+                * `text_search_edit`: QLineEdit for searching text in logs.
+            - Error Selection List:
+                * `error_list`: QListWidget for selecting error codes to filter logs.
+            - Source Selection List:
+                * `source_list`: QListWidget for selecting log sources to filter logs.
+            - Toggle Filter Button:
+                * `toggle_filter_button`: QPushButton to toggle the visibility of 
+                  error and source filter lists.
+            - Labels:
+                * `select_errors_label`: QLabel for error filter instructions.
+                * `select_sources_label`: QLabel for source filter instructions.
+            - Logs Display:
+                * `text_edit`: QTextEdit for displaying filtered logs.
+        Layout:
+            - `filter_layout`: Horizontal layout for date selection, text search, 
+              and toggle filter button.
+            - `error_list_layout`: Vertical layout for error filter label and list.
+            - `source_list_layout`: Vertical layout for source filter label and list.
+            - `filter_lists_layout`: Horizontal layout combining error and source 
+              filter layouts.
+            - `layout`: Main vertical layout combining all components.
+        Behavior:
+            - Connects signals to dynamically filter logs when:
+                * Dates are changed.
+                * Text is entered in the search field.
+                * Error or source selections are modified.
+            - Loads logs at startup.
+        Raises:
+            BaseError: If an exception occurs during UI initialization.
+        """
         try:
             # Date selection widgets
             self.start_date_edit = QDateEdit(self)
@@ -93,7 +146,7 @@ class LogsDialog(BaseDialog):
             self.source_list.setVisible(False)  # Initially hide the source list
             self.source_list.itemSelectionChanged.connect(self.load_logs)  # Dynamic filtering on selection change
 
-            sources = ["program_error", "icon_for_service_error", "service_error"]
+            sources = ["programa", "icono", "servicio"]
             for source in sources:
                 item = QListWidgetItem(source)
                 item.setData(1, source)  # Store the source as data
@@ -160,7 +213,21 @@ class LogsDialog(BaseDialog):
             raise BaseError(3501, str(e), parent=self)
 
     def toggle_filter_visibility(self):
-        """Toggle the visibility of error and source lists."""
+        """
+        Toggles the visibility of filter-related UI elements in the logs dialog.
+
+        This method switches the visibility state of the following elements:
+        - `select_errors_label`
+        - `error_list`
+        - `select_sources_label`
+        - `source_list`
+
+        If an exception occurs during the process, it raises a `BaseError` with
+        an error code of 3500 and the exception message.
+
+        Raises:
+            BaseError: If an exception occurs while toggling visibility.
+        """
         try:
             self.select_errors_label.setVisible(not self.select_errors_label.isVisible())
             self.error_list.setVisible(not self.error_list.isVisible())
@@ -170,7 +237,28 @@ class LogsDialog(BaseDialog):
             raise BaseError(3500, str(e))
 
     def load_logs(self):
-        """Load error logs filtered by date, selected error codes, selected sources, and text search."""
+        """
+        Loads and displays error logs based on the specified filters.
+        This method retrieves error logs within a specified date range, 
+        filtered by selected error types, sources, and a search text. 
+        The logs are then displayed in a text editor.
+        Raises:
+            BaseError: If an exception occurs during the log retrieval process.
+        Filters:
+            - Date range: Defined by `start_date_edit` and `end_date_edit`.
+            - Error types: Selected items in `error_list`.
+            - Sources: Selected items in `source_list`.
+            - Search text: Text entered in `text_search_edit`.
+        Steps:
+            1. Retrieve the start and end dates from the date edit widgets.
+            2. Get the search text and convert it to lowercase.
+            3. Collect selected error types and sources from their respective lists.
+            4. Fetch the filtered error logs using `get_error_logs`.
+            5. Display the logs in the `text_edit` widget.
+        Note:
+            Ensure that the `get_error_logs` method is implemented to handle 
+            the filtering logic and return the appropriate logs.
+        """
         try:
             start_date = self.start_date_edit.date().toString("yyyy-MM-dd")
             end_date = self.end_date_edit.date().toString("yyyy-MM-dd")
@@ -185,16 +273,29 @@ class LogsDialog(BaseDialog):
             raise BaseError(3500, str(e))
 
     def get_error_logs(self, start_date, end_date, selected_errors, selected_sources, search_text):
-        """Retrieve error logs within the date range, filtered by selected errors, sources, and search text."""
+        """
+        Retrieves error log entries from log files within a specified date range, filtered by error codes, sources, 
+        and optional search text.
+        Args:
+            start_date (str): The start date in the format 'YYYY-MM-DD' to filter log entries.
+            end_date (str): The end date in the format 'YYYY-MM-DD' to filter log entries.
+            selected_errors (list): A list of error codes to filter log entries. If empty, all error codes are included.
+            selected_sources (list): A list of sources to filter log entries. If empty, all sources are included.
+            search_text (str): Optional text to search within log entries. If empty, no search filtering is applied.
+        Returns:
+            list: A list of formatted error log entries that match the specified filters, sorted by date and time.
+        Raises:
+            BaseError: If an exception occurs during log processing, it raises a BaseError with code 3500 and the error message.
+        """
         try:
             error_entries = []
             
             pattern = re.compile(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - \w+ - \[(\d{4})\]")  # Capture date, time, and error code
 
             log_files = {
-                "program_error": "program_error.log",
-                "icon_for_service_error": "icon_for_service_error.log",
-                "service_error": "service_error.log"
+                "programa": "programa_reloj_de_asistencias_" + PROGRAM_VERSION + "_error.log",
+                "icono": "icono_reloj_de_asistencias_" + SERVICE_VERSION + "_error.log",
+                "servicio": "servicio_reloj_de_asistencias_" + SERVICE_VERSION + "_error.log"
             }
 
             for folder in os.listdir(LOGS_DIR):
