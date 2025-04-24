@@ -1,8 +1,7 @@
-eventlet
-pillow
-pyinstaller
-pyqt5
-pywin32
-schedule
-psutil
-python-dateutil
+eventlet==0.39.1
+pillow==11.2.1
+pyinstaller==6.13.0
+PyQt5==5.15.11
+schedule==1.2.2
+psutil==7.0.0
+python-dateutil==2.9.0.post0
