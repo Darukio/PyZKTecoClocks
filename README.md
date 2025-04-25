@@ -27,13 +27,16 @@ All required packages are listed in `requirements.txt`.
 # Run in cmd or PowerShell as administrator
 Set-ExecutionPolicy RemoteSigned
 # If needed, navigate to the project directory
-git clone <repo-url> && cd PyZKTecoClocks
+git clone https://github.com/Darukio/PyZKTecoClocks.git && cd PyZKTecoClocks
 python install.py  # Installs dependencies globally
 ```
 
 #### Building Executables
+
 **Program:**
-Run the following command in a Command Prompt or PowerShell window with administrator privileges.
+
+Run the following command in a Command Prompt or PowerShell window.
+
 ```bash
 pyinstaller.exe --noconsole --clean --onefile \
   --version-file version_info.txt \
@@ -124,14 +127,16 @@ Todos los paquetes necesarios están listados en `requirements.txt`.
 # Ejecutar en cmd o PowerShell con permisos de administrador
 Set-ExecutionPolicy RemoteSigned
 # Si es necesario, navegar al directorio del proyecto
-git clone <url-del-repositorio> && cd PyZKTecoClocks
+git clone https://github.com/Darukio/PyZKTecoClocks.git && cd PyZKTecoClocks
 python install.py  # Instala las dependencias de forma global
 ```
 
 #### Creación de ejecutables
 
 **Programa:**
-Ejecutar el siguiente comando en cmd o PowerShell con permisos de admin.
+
+Ejecutar el siguiente comando en cmd o PowerShell.
+
 ```bash
 pyinstaller.exe --noconsole --clean --onefile \
   --version-file version_info.txt \
