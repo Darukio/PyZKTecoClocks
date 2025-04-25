@@ -1,0 +1,1448 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="PyZKTecoClocks: GUI for managing ZKTeco clocks, enabling clock time synchronization and attendance data retrieval.
+Copyright (C) 2024  Paulo Sebastian Spaciuk (Darukio)
+">
+      
+      
+        <meta name="author" content="Paulo Sebastian Spaciuk">
+      
+      
+      
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+    
+    
+      
+        <title>PyZKTecoClocks</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.2afb09e1.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#guia-de-uso-de-pyzktecoclocks" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="." title="PyZKTecoClocks" class="md-header__button md-logo" aria-label="PyZKTecoClocks" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            PyZKTecoClocks
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Uso
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="PyZKTecoClocks" class="md-nav__button md-logo" aria-label="PyZKTecoClocks" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    PyZKTecoClocks
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Uso
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Uso
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tabla-de-contenidos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tabla de Contenidos
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#introduccion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introducción
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interfaz-de-usuario" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interfaz de usuario
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#programa-reloj-de-asistencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      Programa Reloj de Asistencias
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Programa Reloj de Asistencias">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acciones-principales" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acciones principales
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Acciones principales">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lista-de-acciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lista de acciones
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modificar-dispositivos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modificar dispositivos
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reiniciar-dispositivos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reiniciar dispositivos
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#probar-conexiones" class="md-nav__link">
+    <span class="md-ellipsis">
+      Probar conexiones
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#actualizar-hora" class="md-nav__link">
+    <span class="md-ellipsis">
+      Actualizar hora
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#obtener-marcaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      Obtener marcaciones
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuracion-en-acciones-principales" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuración en acciones principales
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acciones-de-configuracion-del-menu-contextual" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acciones de configuración del menú contextual
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otras-acciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      Otras acciones
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servicio-reloj-de-asistencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      Servicio Reloj de Asistencias
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Servicio Reloj de Asistencias">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acciones-principales-del-servicio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acciones principales del servicio
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuracion-del-servicio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuración del servicio
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comportamiento-del-servicio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comportamiento del servicio
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#carpetas-generadas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Carpetas generadas
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#archivos-generados" class="md-nav__link">
+    <span class="md-ellipsis">
+      Archivos generados
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Archivos generados">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#por-el-usuario" class="md-nav__link">
+    <span class="md-ellipsis">
+      Por el usuario
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#por-el-programa-y-el-servicio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Por el programa y el servicio
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#archivo-de-configuracion-configini" class="md-nav__link">
+    <span class="md-ellipsis">
+      Archivo de configuración config.ini
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Archivo de configuración config.ini">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resumen-de-parametros" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resumen de parámetros
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attendance_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attendance_status
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpu_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cpu_config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Device_config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#program_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Program_config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network_config
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tabla-de-contenidos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tabla de Contenidos
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#introduccion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introducción
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interfaz-de-usuario" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interfaz de usuario
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#programa-reloj-de-asistencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      Programa Reloj de Asistencias
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Programa Reloj de Asistencias">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acciones-principales" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acciones principales
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Acciones principales">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lista-de-acciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lista de acciones
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modificar-dispositivos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modificar dispositivos
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reiniciar-dispositivos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reiniciar dispositivos
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#probar-conexiones" class="md-nav__link">
+    <span class="md-ellipsis">
+      Probar conexiones
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#actualizar-hora" class="md-nav__link">
+    <span class="md-ellipsis">
+      Actualizar hora
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#obtener-marcaciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      Obtener marcaciones
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuracion-en-acciones-principales" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuración en acciones principales
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acciones-de-configuracion-del-menu-contextual" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acciones de configuración del menú contextual
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otras-acciones" class="md-nav__link">
+    <span class="md-ellipsis">
+      Otras acciones
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servicio-reloj-de-asistencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      Servicio Reloj de Asistencias
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Servicio Reloj de Asistencias">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acciones-principales-del-servicio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acciones principales del servicio
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuracion-del-servicio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuración del servicio
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comportamiento-del-servicio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comportamiento del servicio
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#carpetas-generadas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Carpetas generadas
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#archivos-generados" class="md-nav__link">
+    <span class="md-ellipsis">
+      Archivos generados
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Archivos generados">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#por-el-usuario" class="md-nav__link">
+    <span class="md-ellipsis">
+      Por el usuario
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#por-el-programa-y-el-servicio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Por el programa y el servicio
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#archivo-de-configuracion-configini" class="md-nav__link">
+    <span class="md-ellipsis">
+      Archivo de configuración config.ini
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Archivo de configuración config.ini">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resumen-de-parametros" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resumen de parámetros
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attendance_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attendance_status
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpu_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cpu_config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Device_config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#program_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Program_config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network_config
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="guia-de-uso-de-pyzktecoclocks">Guía de Uso de PyZKTecoClocks</h1>
+<h2 id="tabla-de-contenidos">Tabla de Contenidos</h2>
+<ol>
+<li><a href="#introduccion">Introducción</a></li>
+<li><a href="#interfaz-de-usuario">Interfaz de usuario</a></li>
+<li><a href="#programa-reloj-de-asistencias">Programa Reloj de Asistencias</a></li>
+<li><a href="#acciones-principales">Acciones principales</a><ul>
+<li><a href="#lista-de-acciones">Lista de acciones</a></li>
+<li><a href="#modificar-dispositivos">Modificar dispositivos</a></li>
+<li><a href="#reiniciar-dispositivos">Reiniciar dispositivos</a></li>
+<li><a href="#probar-conexiones">Probar conexiones</a></li>
+<li><a href="#actualizar-hora">Actualizar hora</a></li>
+<li><a href="#obtener-marcaciones">Obtener marcaciones</a></li>
+</ul>
+</li>
+<li><a href="#configuracion-en-acciones-principales">Configuración en acciones principales</a></li>
+<li><a href="#acciones-de-configuracion-del-menu-contextual">Acciones de configuración del menú contextual</a></li>
+<li><a href="#otras-acciones">Otras acciones</a></li>
+<li><a href="#servicio-reloj-de-asistencias">Servicio Reloj de Asistencias</a></li>
+<li><a href="#acciones-principales-del-servicio">Acciones principales del servicio</a></li>
+<li><a href="#configuracion-del-servicio">Configuración del servicio</a></li>
+<li><a href="#comportamiento-del-servicio">Comportamiento del servicio</a></li>
+<li><a href="#carpetas-generadas">Carpetas generadas</a></li>
+<li><a href="#archivos-generados">Archivos generados</a></li>
+<li><a href="#por-el-usuario">Por el usuario</a></li>
+<li><a href="#por-el-programa-y-el-servicio">Por el programa y el servicio</a></li>
+<li><a href="#logs">Logs</a></li>
+<li><a href="#archivo-de-configuracion-configini">Archivo de configuración </a><a href="#archivo-de-configuracion-configini"><code>config.ini</code></a></li>
+<li><a href="#resumen-de-parametros">Resumen de parámetros</a></li>
+<li><a href="#attendance_status">Attendance_status</a></li>
+<li><a href="#cpu_config">Cpu_config</a></li>
+<li><a href="#device_config">Device_config</a></li>
+<li><a href="#program_config">Program_config</a></li>
+<li><a href="#network_config">Network_config</a></li>
+</ol>
+<hr />
+<h2 id="introduccion">Introducción</h2>
+<p>Este documento describe cómo utilizar las herramientas <strong>Programa Reloj de Asistencias</strong> y <strong>Servicio Reloj de Asistencias</strong> del proyecto <strong>PyZKTecoClocks</strong>. Aquí encontrarás:</p>
+<ul>
+<li>Descripción de las interfaces de usuario.</li>
+<li>Detalle de cada acción disponible.</li>
+<li>Explicación de la configuración y de los archivos generados.</li>
+<li>Estructura de las carpetas y logs.</li>
+</ul>
+<hr />
+<h2 id="interfaz-de-usuario">Interfaz de usuario</h2>
+<p>El proyecto cuenta con dos aplicaciones independientes, cada uno con su propia interfaz de bandeja. Al hacer clic derecho sobre el ícono, se despliega un menú contextual con acciones propias del ejecutable.</p>
+<p>Ver apartados <a href="#programa-reloj-de-asistencias">Programa Reloj de Asistencias</a> y <a href="#servicio-reloj-de-asistencias">Servicio Reloj de Asistencias</a> para más información.</p>
+<h2 id="programa-reloj-de-asistencias">Programa Reloj de Asistencias</h2>
+<p>Para usar el programa, ejecutar <code>Programa Reloj de Asistencias.exe</code>. Para ello, asegúrese de tener en el directorio raíz donde se encuentran los ejecutables, los archivos <code>config.ini</code> (ver <a href="#archivo-de-configuracion-configini">Archivo de configuración</a>) y <code>info_devices.txt</code> (ver <a href="#por-el-usuario">Archivos generados por el usuario</a>).</p>
+<h3 id="acciones-principales">Acciones principales</h3>
+<p>El menú contextual del programa ofrece cinco acciones principales que abren ventanas con tablas interactivas y controles de ejecución.</p>
+<h4 id="lista-de-acciones">Lista de acciones</h4>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Descripción breve</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#modificar-dispositivos">Modificar dispositivos</a></td>
+<td>Edita <code>info_devices.txt</code> desde una tabla interactiva.</td>
+</tr>
+<tr>
+<td><a href="#reiniciar-dispositivos">Reiniciar dispositivos</a></td>
+<td>Envía comando de reinicio y muestra progreso con barra y alertas.</td>
+</tr>
+<tr>
+<td><a href="#probar-conexiones">Probar conexiones</a></td>
+<td>Verifica conexión, marcaciones, serie, plataforma y firmware.</td>
+</tr>
+<tr>
+<td><a href="#actualizar-hora">Actualizar hora</a></td>
+<td>Sincroniza la hora de los dispositivos seleccionados.</td>
+</tr>
+<tr>
+<td><a href="#obtener-marcaciones">Obtener marcaciones</a></td>
+<td>Descarga registros y sincroniza hora, con gestión de errores.</td>
+</tr>
+</tbody>
+</table>
+<p>Cada acción incluye <strong>Tiempo de Espera</strong> y <strong>Reintentos</strong> (ver <a href="#configuracion-en-acciones-principales">Configuración en acciones principales</a>) y utiliza variables de <code>config.ini</code> (ver <a href="#archivo-de-configuracion-configini">Archivo de configuración</a>). Además, genera archivos de log mensuales en la carpeta <code>logs/</code> (ver <a href="#carpetas-generadas">Carpetas generadas</a>).</p>
+<h4 id="modificar-dispositivos">Modificar dispositivos</h4>
+<p>Abre una ventana en la que permite modificar el archivo <code>info_devices.txt</code> a través de una tabla que contiene los dispositivos configurados para las acciones de:</p>
+<ul>
+<li>Reiniciar dispositivos</li>
+<li>Probar conexiones</li>
+<li>Actualizar hora</li>
+<li>Obtener marcaciones</li>
+</ul>
+<p>La tabla es interactiva: al hacer doble clic sobre cualquier campo, se habilita la edición in situ, pero <strong>no</strong> se guardan los cambios en tiempo real en el archivo.</p>
+<p><strong>Botones disponibles:</strong></p>
+<ul>
+<li><strong>Cargar</strong>: recarga desde <code>info_devices.txt</code> todos los dispositivos y actualiza la tabla.</li>
+<li><strong>Modificar</strong>: guarda en <code>info_devices.txt</code> los cambios realizados en la tabla.</li>
+<li><strong>Agregar</strong>: abre un formulario para incluir un nuevo dispositivo; solicita:<ul>
+<li>Distrito  </li>
+<li>Modelo  </li>
+<li>Punto de marcación  </li>
+<li>IP  </li>
+<li>Tipo de comunicación (TCP o UDP)</li>
+</ul>
+</li>
+<li><strong>Activar todo</strong>: marca la casilla "Activo" para <strong>todos</strong> los dispositivos listados, de modo que aparezcan y estén disponibles en las demás ventanas de acciones.</li>
+<li><strong>Desactivar todo</strong>: desmarca la casilla "Activo" para <strong>todos</strong> los dispositivos listados, de modo que queden ocultos y no se incluyan en las demás acciones.</li>
+</ul>
+<h4 id="reiniciar-dispositivos">Reiniciar dispositivos</h4>
+<p>Abre una ventana con:</p>
+<ul>
+<li>
+<p><strong>Inputs</strong>:</p>
+<ul>
+<li>Tiempo de Espera  </li>
+<li>Reintentos</li>
+</ul>
+<p>(Ver <a href="#configuracion-en-acciones-principales">Configuración en acciones principales</a>).</p>
+</li>
+<li>
+<p><strong>Tabla interactiva</strong> de dispositivos activos (selección mediante clic izquierdo).</p>
+</li>
+<li><strong>Botones disponibles:</strong><ul>
+<li><strong>Reiniciar dispositivos</strong>: envía el comando de reinicio a cada dispositivo seleccionado; se muestra:<ul>
+<li>Barra de progreso verde indicando avance.  </li>
+<li>Conteo “dispositivos finalizados / total activos”.</li>
+<li>Al finalizar, ventana emergente con listado de dispositivos cuya conexión falló.</li>
+</ul>
+</li>
+<li><strong>Seleccionar todo</strong>: marca todos los dispositivos para reinicio.  </li>
+<li><strong>Deseleccionar todo</strong>: desmarca todos.</li>
+</ul>
+</li>
+</ul>
+<p>Esta acción utiliza las variables del <code>config.ini</code>:</p>
+<ul>
+<li><code>threads_pool_max_size</code>  </li>
+<li><code>retry_connection</code>  </li>
+<li><code>timeout</code></li>
+</ul>
+<p>(Ver <a href="#archivo-de-configuracion-configini">Archivo de configuración</a>).</p>
+<h4 id="probar-conexiones">Probar conexiones</h4>
+<p>Abre una ventana con:</p>
+<ul>
+<li>
+<p><strong>Inputs</strong>:</p>
+<ul>
+<li>Tiempo de Espera  </li>
+<li>Reintentos</li>
+</ul>
+<p>(Ver <a href="#configuracion-en-acciones-principales">Configuración en acciones principales</a>).</p>
+</li>
+<li>
+<p><strong>Tabla interactiva</strong> de dispositivos activos (selección mediante clic izquierdo).</p>
+</li>
+<li><strong>Botones disponibles:</strong><ul>
+<li><strong>Probar conexiones</strong>: envía comandos a cada dispositivo seleccionado; despliega:<ul>
+<li>Barra de progreso verde y conteo “finalizados / total”.</li>
+<li>Al completar, la tabla añade las columnas:<ul>
+<li><strong>Estado de Conexión</strong>: "Conectado" o "Error".  </li>
+<li><strong>Cant. de Marcaciones</strong>: número de registros ("No aplica" si 0).  </li>
+<li><strong>Número de Serie</strong>  </li>
+<li><strong>Plataforma</strong>  </li>
+<li><strong>Firmware</strong>  </li>
+</ul>
+</li>
+<li>Coloreado de celdas:<ul>
+<li>Verde si el valor fue obtenido correctamente.  </li>
+<li>Gris con leyenda "No aplica" si el campo no corresponde.  </li>
+<li>Rojo si hubo fallo de conexión o de obtención.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Seleccionar todo</strong> / <strong>Deseleccionar todo</strong>.</li>
+</ul>
+</li>
+</ul>
+<p>Esta acción utiliza las variables del <code>config.ini</code>:</p>
+<ul>
+<li><code>threads_pool_max_size</code>  </li>
+<li><code>retry_connection</code>  </li>
+<li><code>size_ping_test_connection</code>  </li>
+<li><code>timeout</code></li>
+</ul>
+<p>(Ver <a href="#archivo-de-configuracion-configini">Archivo de configuración</a>).</p>
+<h4 id="actualizar-hora">Actualizar hora</h4>
+<p>Abre una ventana con:</p>
+<ul>
+<li>
+<p><strong>Inputs</strong>:</p>
+<ul>
+<li>Tiempo de Espera  </li>
+<li>Reintentos</li>
+</ul>
+<p>(Ver <a href="#configuracion-en-acciones-principales">Configuración en acciones principales</a>).</p>
+</li>
+<li>
+<p><strong>Tabla interactiva</strong> de dispositivos activos (selección mediante clic izquierdo).</p>
+</li>
+<li>
+<p><strong>Botones disponibles:</strong></p>
+<ul>
+<li><strong>Actualizar hora</strong>: envía comando a cada dispositivo seleccionado; muestra barra de progreso.</li>
+<li>
+<p><strong>Seleccionar todo</strong> / <strong>Deseleccionar todo</strong>.</p>
+</li>
+<li>
+<p>Al finalizar, la tabla añade:</p>
+<ul>
+<li><strong>Estado de Conexión</strong>: "Conectado" (verde) o "Error" (rojo).</li>
+<li><strong>Estado de Pila</strong>: </li>
+<li>"Pila funcionando" (verde)  </li>
+<li>"Pila fallando" (rojo)  </li>
+<li>"No aplica" (gris) si hubo error de conexión.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Esta acción utiliza las variables del <code>config.ini</code>:</p>
+<ul>
+<li><code>threads_pool_max_size</code>  </li>
+<li><code>retry_connection</code>  </li>
+<li><code>timeout</code></li>
+</ul>
+<p>(Ver <a href="#archivo-de-configuracion-configini">Archivo de configuración</a>).</p>
+<h4 id="obtener-marcaciones">Obtener marcaciones</h4>
+<p>Abre una ventana con:</p>
+<ul>
+<li>
+<p><strong>Inputs</strong>:</p>
+<ul>
+<li>Tiempo de Espera  </li>
+<li>Reintentos</li>
+</ul>
+<p>(Ver <a href="#configuracion-en-acciones-principales">Configuración en acciones principales</a>).</p>
+</li>
+<li>
+<p><strong>Tabla interactiva</strong> de dispositivos activos (selección mediante clic izquierdo).</p>
+</li>
+<li><strong>Botones disponibles:</strong><ul>
+<li><strong>Obtener marcaciones</strong>: envía comandos para descargar marcaciones, sincronizar la hora, actualizar el modelo en el nombre de las carpetas ubicadas en <code>devices/{distrito}/</code>; muestra barra de progreso con conteo.</li>
+<li><strong>Seleccionar todo</strong> / <strong>Deseleccionar todo</strong>.</li>
+<li><strong>Reintentar todos</strong> / <strong>Reintentar fallidos</strong> (aparecen si hubo fallos).</li>
+</ul>
+</li>
+</ul>
+<p>Al terminar, se agrega:</p>
+<ul>
+<li><strong>Cant. de Marcaciones</strong>: número de marcaciones descargadas (verde con cantidad) o "Conexión fallida" (rojo).</li>
+</ul>
+<p><strong>Gestión de errores de formato:</strong></p>
+<ul>
+<li>Dispositivos con registros fuera de rango (más de 3 meses antiguos o fechas futuras al día de hoy) mostrarán hipervínculos a sus archivos.</li>
+<li>Si "Eliminar marcaciones" está activo, permite forzar eliminación en próxima ejecución; luego se deshabilita.</li>
+<li>Si no, solo listará enlaces a archivos afectados.</li>
+</ul>
+<p>Archivos de salida diarios: <code>devices/{distrito}/{modelo}-{punto_de_marcacion}/</code> y <code>%ProgramData%/.../Backup/devices/{distrito}/{modelo}-{punto_de_marcacion}/</code> (ver <a href="#carpetas-generadas">Carpetas generadas</a>).</p>
+<h3 id="configuracion-en-acciones-principales">Configuración en acciones principales</h3>
+<ul>
+<li><strong>Tiempo de Espera</strong>: modifica <code>timeout</code> (segundos) en <code>config.ini</code>.</li>
+<li><strong>Reintentos</strong>: modifica <code>retry_connection</code> (intentos) en <code>config.ini</code>.</li>
+</ul>
+<h3 id="acciones-de-configuracion-del-menu-contextual">Acciones de configuración del menú contextual</h3>
+<ul>
+<li><strong>Eliminar marcaciones</strong>: edita <code>clear_attendance</code> en <code>config.ini</code>.</li>
+<li><strong>Iniciar automáticamente</strong>: registra programa en inicio del sistema.</li>
+</ul>
+<h3 id="otras-acciones">Otras acciones</h3>
+<ul>
+<li><strong>Salir</strong>: cierra el programa.</li>
+</ul>
+<hr />
+<h2 id="servicio-reloj-de-asistencias">Servicio Reloj de Asistencias</h2>
+<p>El servicio se compone de 2 ejecutables: <code>schedulerService.exe</code> y <code>Servicio Reloj de Asistencias.exe</code>.</p>
+<ul>
+<li><code>schedulerService.exe</code> es el servicio automático per se.</li>
+<li><code>Servicio Reloj de Asistencias.exe</code> es el gestor del servicio. Con él, se pueden hacer las acciones tabuladas en la siguiente sección.</li>
+</ul>
+<p>Para usar el servicio, ejecutar <code>Servicio Reloj de Asistencias.exe</code>. Para ello, asegúrese de tener en el directorio raíz donde se encuentran los ejecutables, los archivos <code>config.ini</code> (ver <a href="#archivo-de-configuracion-configini">Archivo de configuración</a>), <code>info_devices.txt</code> y <code>schedule.txt</code> (ver <a href="#por-el-usuario">Archivos generados por el usuario</a>).</p>
+<h3 id="acciones-principales-del-servicio">Acciones principales del servicio</h3>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Iniciar servicio</td>
+<td>Arranca el servicio manualmente.</td>
+</tr>
+<tr>
+<td>Detener servicio</td>
+<td>Detiene la ejecución del servicio.</td>
+</tr>
+<tr>
+<td>Reiniciar servicio</td>
+<td>Detiene y vuelve a iniciar el servicio.</td>
+</tr>
+<tr>
+<td>Reinstalar servicio</td>
+<td>Reinstala el servicio en el sistema.</td>
+</tr>
+<tr>
+<td>Desinstalar servicio</td>
+<td>Elimina el servicio del sistema.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="configuracion-del-servicio">Configuración del servicio</h3>
+<ul>
+<li><strong>Eliminar marcaciones</strong>: edita <code>clear_attendance_service</code> en <code>config.ini</code>.</li>
+<li><strong>Iniciar automáticamente</strong>: registra servicio en inicio del sistema.</li>
+</ul>
+<h3 id="comportamiento-del-servicio">Comportamiento del servicio</h3>
+<ul>
+<li>Arranca automáticamente al ejecutar el ejecutable.</li>
+<li>Permanece activo tras cerrar la app, siguiendo <code>schedule.txt</code>.</li>
+<li>Usa dispositivos activos en <code>info_devices.txt</code>.</li>
+<li>No elimina marcaciones erróneas; el programa las procesa en la próxima ejecución de “Obtener marcaciones”.</li>
+</ul>
+<hr />
+<h2 id="carpetas-generadas">Carpetas generadas</h2>
+<table>
+<thead>
+<tr>
+<th>Ruta</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>devices/{distrito}/{modelo}-{punto_de_marcacion}/</code></td>
+<td>Marcaciones organizadas por distrito y modelo / punto de marcación.</td>
+</tr>
+<tr>
+<td><code>logs/{año-mes}/</code></td>
+<td>Logs mensuales de programa y servicio.</td>
+</tr>
+<tr>
+<td><code>%ProgramData%/.../Backup/devices/{distrito}/{modelo}</code></td>
+<td>Copia de seguridad de archivos de asistencia.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="archivos-generados">Archivos generados</h2>
+<h3 id="por-el-usuario">Por el usuario</h3>
+<ul>
+<li><strong>schedule.txt</strong>: define horarios de tareas (<em>no modificar títulos</em>).</li>
+</ul>
+<p><code># Hours for gestionar_marcaciones_dispositivos
+    ...
+  # Hours for actualizar_hora_dispositivos
+    ...</code></p>
+<ul>
+<li><strong>info_devices.txt</strong>: lista de dispositivos:</li>
+</ul>
+<p><code>DISTRITO - MODELO - PUNTO - IP - ID - TCP/UDP - Activado (True/False)</code></p>
+<h3 id="por-el-programa-y-el-servicio">Por el programa y el servicio</h3>
+<ul>
+<li><code>{name_attendances_file}.txt</code>: archivo global de marcaciones.</li>
+<li><code>ip_date_file.cro</code>: registros por dispositivo y fecha en <code>devices/{distrito}/{modelo}-{punto_de_marcacion}/</code>.</li>
+</ul>
+<h3 id="logs">Logs</h3>
+<ul>
+<li><strong>programa_reloj_de_asistencias_{VERSION}_debug.log</strong>: mensajes de depuración e info.</li>
+<li><strong>programa_reloj_de_asistencias_{VERSION}_error.log</strong>: advertencias y errores.</li>
+<li><strong>console_log.txt</strong>: logs de consola.</li>
+<li><strong>servicio_reloj_de_asistencias_{VERSION}_debug.txt</strong> y <strong>_error.txt</strong>: logs del servicio.</li>
+<li><strong>icono_reloj_de_asistencias_{VERSION}_{tipo}.txt</strong>: logs del icono del servicio.</li>
+</ul>
+<hr />
+<h2 id="archivo-de-configuracion-configini">Archivo de configuración <code>config.ini</code></h2>
+<h3 id="resumen-de-parametros">Resumen de parámetros</h3>
+<table>
+<thead>
+<tr>
+<th>Sección</th>
+<th>Parámetro</th>
+<th>Tipo</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attendance_status</td>
+<td>IDs de tipo de marcación</td>
+<td>Entero</td>
+<td>Relaciona ID con tipo de marcación (face, fingerprint, card).</td>
+</tr>
+<tr>
+<td>Cpu_config</td>
+<td>threads_pool_max_size</td>
+<td>Entero</td>
+<td>Máximo de conexiones paralelas en acciones de red.</td>
+</tr>
+<tr>
+<td>Device_config</td>
+<td>clear_attendance</td>
+<td>Booleano</td>
+<td>Elimina marcaciones en ejecución manual.</td>
+</tr>
+<tr>
+<td></td>
+<td>clear_attendance_service</td>
+<td>Booleano</td>
+<td>Elimina marcaciones en servicio programado.</td>
+</tr>
+<tr>
+<td></td>
+<td>disable_device</td>
+<td>Booleano</td>
+<td>Bloqueo del dispositivo al acceder (no recomendado).</td>
+</tr>
+<tr>
+<td>Program_config</td>
+<td>name_attendances_file</td>
+<td>Cadena</td>
+<td>Nombre del archivo global de marcaciones.</td>
+</tr>
+<tr>
+<td>Network_config</td>
+<td>retry_connection</td>
+<td>Entero</td>
+<td>Cantidad de reintentos en operaciones de red.</td>
+</tr>
+<tr>
+<td></td>
+<td>size_ping_test_connection</td>
+<td>Entero</td>
+<td>Paquetes enviados en test de conexión.</td>
+</tr>
+<tr>
+<td></td>
+<td>timeout</td>
+<td>Entero</td>
+<td>Segundos antes de considerar caída de conexión.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="attendance_status">Attendance_status</h3>
+<p>Asocia IDs con tipos de marcación.</p>
+<p>Ejemplo en <code>config.ini</code>:</p>
+<pre><code class="language-ini">[Attendance_status]
+status_face = 2
+status_fingerprint = 1
+status_card = 3
+</code></pre>
+<h3 id="cpu_config">Cpu_config</h3>
+<ul>
+<li><code>threads_pool_max_size</code>: conexiones paralelas.</li>
+</ul>
+<p>Ejemplo en <code>config.ini</code>:</p>
+<pre><code class="language-ini">[Cpu_config]
+threads_pool_max_size = 50
+</code></pre>
+<h3 id="device_config">Device_config</h3>
+<ul>
+<li><code>clear_attendance</code>: elimina marcaciones manuales.</li>
+<li><code>clear_attendance_service</code>: elimina marcaciones en el servicio.</li>
+<li><code>disable_device</code>: bloquea dispositivo al acceder (no recomendado).</li>
+</ul>
+<p>Ejemplo en <code>config.ini</code>:</p>
+<pre><code class="language-ini">[Device_config]
+clear_attendance = False
+force_clear_attendance = False
+clear_attendance_service = False
+disable_device = False
+</code></pre>
+<h3 id="program_config">Program_config</h3>
+<ul>
+<li><code>name_attendances_file</code>: nombre del archivo global de marcaciones.</li>
+</ul>
+<p>Ejemplo en <code>config.ini</code>:</p>
+<pre><code class="language-ini">[Program_config]
+name_attendances_file = attendances_file
+</code></pre>
+<h3 id="network_config">Network_config</h3>
+<ul>
+<li><code>retry_connection</code>: reintentos en operaciones de red.</li>
+<li><code>size_ping_test_connection</code>: paquetes en test de conexión.</li>
+<li><code>timeout</code>: segundos de espera.</li>
+</ul>
+<p>Ejemplo en <code>config.ini</code>:</p>
+<pre><code class="language-ini">[Network_config]
+retry_connection = 3
+size_ping_test_connection = 5
+timeout = 15
+</code></pre>
+<hr />
+<p><em>Fin de la documentación.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,10 @@
+site_name: PyZKTecoClocks
+site_description: |
+  PyZKTecoClocks: GUI for managing ZKTeco clocks, enabling clock time synchronization and attendance data retrieval.
+  Copyright (C) 2024  Paulo Sebastian Spaciuk (Darukio)
+site_author: "Paulo Sebastian Spaciuk"
+theme:
+  name: material
+  language: es
+nav:
+  - Uso: index.md
