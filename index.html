@@ -65,6 +65,11 @@ Copyright (C) 2024  Paulo Sebastian Spaciuk (Darukio)
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#pyzktecoclocks" class="md-skip">
+          Saltar a contenido
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -199,6 +204,21 @@ Copyright (C) 2024  Paulo Sebastian Spaciuk (Darukio)
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Introducción
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="." class="md-nav__link md-nav__link--active">
         
@@ -211,6 +231,70 @@ Copyright (C) 2024  Paulo Sebastian Spaciuk (Darukio)
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#que-es-pyzktecoclocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      ¿Qué es PyZKTecoClocks?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instalacion-rapida" class="md-nav__link">
+    <span class="md-ellipsis">
+      Instalación rápida
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caracteristicas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Características
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#estructura-del-proyecto" class="md-nav__link">
+    <span class="md-ellipsis">
+      Estructura del proyecto
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enlaces-utiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enlaces útiles
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -255,6 +339,61 @@ Copyright (C) 2024  Paulo Sebastian Spaciuk (Darukio)
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#que-es-pyzktecoclocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      ¿Qué es PyZKTecoClocks?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instalacion-rapida" class="md-nav__link">
+    <span class="md-ellipsis">
+      Instalación rápida
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caracteristicas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Características
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#estructura-del-proyecto" class="md-nav__link">
+    <span class="md-ellipsis">
+      Estructura del proyecto
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enlaces-utiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enlaces útiles
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -270,9 +409,83 @@ Copyright (C) 2024  Paulo Sebastian Spaciuk (Darukio)
 
 
 
-  <h1>Introducción</h1>
-
-<p>Hola Mundo</p>
+<h1 id="pyzktecoclocks">PyZKTecoClocks</h1>
+<blockquote>
+<p>⚠️ <strong>Nota / Note:</strong><br />
+Esta página está disponible <em>solo en español</em> temporalmente.<br />
+This page is currently available <em>in Spanish only</em>.</p>
+</blockquote>
+<h2 id="que-es-pyzktecoclocks">¿Qué es PyZKTecoClocks?</h2>
+<p>Librería y aplicaciones para gestionar relojes de asistencia ZKTeco desde Python:</p>
+<ul>
+<li><strong>Programa Reloj de Asistencias</strong>: GUI de escritorio para reiniciar dispositivos, probar conexiones, sincronizar hora y descargar marcaciones.  </li>
+<li><strong>Servicio Reloj de Asistencias</strong>: Demonio programable en segundo plano para automatizar tareas de asistencia.</li>
+</ul>
+<h2 id="instalacion-rapida">Instalación rápida</h2>
+<ol>
+<li>
+<p><strong>Prerrequisitos</strong></p>
+<ul>
+<li>Python 3.7+  </li>
+<li>Windows 10 o superior</li>
+</ul>
+</li>
+<li>
+<p><strong>Clona e instala</strong></p>
+</li>
+</ol>
+<pre><code class="language-bash">git clone &lt;repo-url&gt; &amp;&amp; cd PyZKTecoClocks
+python install.py
+</code></pre>
+<ol>
+<li><strong>Construir ejecutable</strong></li>
+</ol>
+<p>Ejecuta en PowerShell (como administrador):</p>
+<pre><code class="language-bash">pyinstaller.exe --noconsole --clean --onefile \
+--version-file version_info.txt \
+--hidden-import=eventlet.hubs.epolls \
+--hidden-import=eventlet.hubs.kqueue \
+--hidden-import=eventlet.hubs.selects \
+--hidden-import=dns \
+--hidden-import=dns.dnssec \
+--hidden-import=dns.e164 \
+--hidden-import=dns.hash \
+--hidden-import=dns.namedict \
+--hidden-import=dns.tsigkeyring \
+--hidden-import=dns.update \
+--hidden-import=dns.version \
+--hidden-import=dns.zone \
+--hidden-import=dns.versioned \
+-n &quot;Programa Reloj de Asistencias&quot; \
+-i &quot;resources/fingerprint.ico&quot; \
+--add-data &quot;json/errors.json;json/&quot; \
+--add-data &quot;resources/window/*;resources/window&quot; \
+--add-data &quot;resources/system_tray/*;resources/system_tray&quot; \
+--add-data &quot;resources/fingerprint.ico;resources/&quot; \
+--noupx \
+--log-level=INFO \
+--debug all \
+main.py
+</code></pre>
+<h2 id="caracteristicas">Características</h2>
+<ul>
+<li>Configuración flexible mediante <code>config.ini</code>, <code>schedule.txt</code> e <code>info_devices.txt</code>.  </li>
+<li>Logs detallados en <code>logs/</code> y backups en <code>%ProgramData%/</code>.  </li>
+<li>Interfaz de bandeja de sistema con menú contextual.</li>
+</ul>
+<h2 id="estructura-del-proyecto">Estructura del proyecto</h2>
+<pre><code class="language-plaintext">.
+├───docs        # MkDocs (USAGE.md, guías, referencias)
+├───json        # Persistencia de datos
+├───resources   # Iconos y assets UI
+└───scripts     # Código fuente (business_logic, common, ui)
+</code></pre>
+<h2 id="enlaces-utiles">Enlaces útiles</h2>
+<ul>
+<li><a href="USAGE/">Guía de Uso completa</a>  </li>
+<li><a href="USAGE/#archivo-de-configuracion-configini">Configuración (<code>config.ini</code>)</a>  </li>
+<li><a href="USAGE/#carpetas-generadas">Estructura detallada de carpetas y logs</a></li>
+</ul>
 
 
 
