@@ -1,7 +1,7 @@
 # PyZKTecoClocks
 [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://darukio.github.io/PyZKTecoClocks/)
 
-## English
+## [![English](https://img.shields.io/badge/language-en-red.svg)](#)
 
 **Library and applications to manage ZKTeco attendance clocks from Python.**
 
@@ -98,9 +98,7 @@ For detailed installation and usage instructions, see the [Usage Guide](https://
 
 ---
 
-*This README provides a high-level overview; for in-depth guidance, consult `docs/USAGE.md`.*
-
-## Español
+## [![Español](https://img.shields.io/badge/language-es-red.svg)](#)
 
 **Librería y aplicaciones para gestionar relojes de asistencia ZKTeco desde Python.**
 
