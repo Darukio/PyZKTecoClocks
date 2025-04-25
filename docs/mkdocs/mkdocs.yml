@@ -7,4 +7,5 @@ theme:
   name: material
   language: es
 nav:
+  - Introducción: index.md
   - Uso: USAGE.md
