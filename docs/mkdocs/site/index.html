@@ -422,25 +422,17 @@ This page is currently available <em>in Spanish only</em>.</p>
 <li><strong>Servicio Reloj de Asistencias</strong>: Demonio programable en segundo plano para automatizar tareas de asistencia.</li>
 </ul>
 <h2 id="instalacion-rapida">Instalación rápida</h2>
-<ol>
-<li>
-<p><strong>Prerrequisitos</strong></p>
-<ul>
-<li>Python 3.7+  </li>
-<li>Windows 10 o superior</li>
-</ul>
-</li>
-<li>
-<p><strong>Clona e instala</strong></p>
-</li>
-</ol>
+<p><strong>1. Prerrequisitos</strong></p>
+<pre><code>- Python 3.7+  
+- Windows 10 o superior
+</code></pre>
+<p><strong>2. Clona e instala</strong></p>
 <pre><code class="language-bash">git clone &lt;repo-url&gt; &amp;&amp; cd PyZKTecoClocks
 python install.py
 </code></pre>
-<ol>
-<li><strong>Construir ejecutable</strong></li>
-</ol>
+<p><strong>3. Construir ejecutables</strong></p>
 <p>Ejecuta en PowerShell (como administrador):</p>
+<p><strong>3.1. Programa:</strong></p>
 <pre><code class="language-bash">pyinstaller.exe --noconsole --clean --onefile \
 --version-file version_info.txt \
 --hidden-import=eventlet.hubs.epolls \
@@ -466,6 +458,12 @@ python install.py
 --log-level=INFO \
 --debug all \
 main.py
+</code></pre>
+<p><strong>3.2. Ejecutable del Servicio:</strong></p>
+<pre><code class="language-bash">pyinstaller --noconsole --clean --version-file version_info.txt --onefile --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone --hidden-import=dns.versioned --add-data &quot;json/errors.json;json/&quot; --noupx --log-level=INFO --debug all schedulerService.py
+</code></pre>
+<p><strong>3.3. GUI del servicio:</strong></p>
+<pre><code class="language-bash">pyinstaller.exe --noconsole --clean --version-file version_info.txt --onefile --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone --hidden-import=dns.versioned -n &quot;Servicio Reloj de Asistencias&quot; -i &quot;resources/24-7.png&quot; --add-data &quot;resources/system_tray/*;resources/system_tray&quot; --add-data &quot;resources/24-7.png;resources/&quot; --add-data &quot;json/errors.json;json/&quot; --noupx --log-level=INFO --uac-admin --debug all main.py
 </code></pre>
 <h2 id="caracteristicas">Características</h2>
 <ul>

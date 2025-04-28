@@ -13,21 +13,23 @@ Librería y aplicaciones para gestionar relojes de asistencia ZKTeco desde Pytho
 
 ## Instalación rápida
 
-1. **Prerrequisitos**
+**1. Prerrequisitos**
 
     - Python 3.7+  
     - Windows 10 o superior
 
-2. **Clona e instala**
+**2. Clona e instala**
 
 ```bash
 git clone <repo-url> && cd PyZKTecoClocks
 python install.py
 ```
 
-3. **Construir ejecutable**
+**3. Construir ejecutables**
 
 Ejecuta en PowerShell (como administrador):
+
+**3.1. Programa:**
 
 ```bash
 pyinstaller.exe --noconsole --clean --onefile \
@@ -55,6 +57,18 @@ pyinstaller.exe --noconsole --clean --onefile \
 --log-level=INFO \
 --debug all \
 main.py
+```
+
+**3.2. Ejecutable del Servicio:**
+
+```bash
+pyinstaller --noconsole --clean --version-file version_info.txt --onefile --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone --hidden-import=dns.versioned --add-data "json/errors.json;json/" --noupx --log-level=INFO --debug all schedulerService.py
+```
+
+**3.3. GUI del servicio:**
+
+```bash
+pyinstaller.exe --noconsole --clean --version-file version_info.txt --onefile --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone --hidden-import=dns.versioned -n "Servicio Reloj de Asistencias" -i "resources/24-7.png" --add-data "resources/system_tray/*;resources/system_tray" --add-data "resources/24-7.png;resources/" --add-data "json/errors.json;json/" --noupx --log-level=INFO --uac-admin --debug all main.py
 ```
 
 ## Características
