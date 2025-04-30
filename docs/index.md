@@ -1,7 +1,7 @@
 # PyZKTecoClocks
 
 > ⚠️ **Nota / Note:**  
-> Esta página está disponible _solo en español_ temporalmente.  
+> Esta página está disponible _solo en Español_ temporalmente.  
 > This page is currently available _in Spanish only_.
 
 ## ¿Qué es PyZKTecoClocks?
@@ -84,7 +84,7 @@ pyinstaller.exe --noconsole --clean --version-file version_info.txt --onefile --
 ├───docs        # MkDocs (USAGE.md, guías, referencias)
 ├───json        # Persistencia de datos
 ├───resources   # Iconos y assets UI
-└───scripts     # Código fuente (business_logic, common, ui)
+└───src         # Código fuente (business_logic, common, ui)
 ```
 
 ## Enlaces útiles

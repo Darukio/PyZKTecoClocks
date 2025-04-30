@@ -1,5 +1,9 @@
 # Guía de Uso de PyZKTecoClocks
 
+> ⚠️ **Nota / Note:**  
+> Esta página está disponible _solo en Español_ temporalmente.  
+> This page is currently available _in Spanish only_.
+
 ## Tabla de Contenidos
 
 1. [Introducción](#introduccion)
