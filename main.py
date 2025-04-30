@@ -1,37 +1,35 @@
-"""
-    PyZKTecoClocks: GUI for managing ZKTeco clocks, enabling clock 
-    time synchronization and attendance data retrieval.
-    Copyright (C) 2024  Paulo Sebastian Spaciuk (Darukio)
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""
+# PyZKTecoClocks: GUI for managing ZKTeco clocks, enabling clock 
+# time synchronization and attendance data retrieval.
+# Copyright (C) 2024  Paulo Sebastian Spaciuk (Darukio)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import eventlet
 eventlet.monkey_patch()
-from scripts.common.utils.errors import BaseError
-from scripts.common.utils.system_utils import is_user_admin
+from src.common.utils.errors import BaseError
+from src.common.utils.system_utils import is_user_admin
 from PyQt5.QtWidgets import QApplication
-from scripts.ui.icon_manager import MainWindow
-from scripts.common.utils.logging import config_log, logging
-from scripts.common.utils.file_manager import find_root_directory
+from src.ui.icon_manager import MainWindow
+from src.common.utils.logging import config_log, logging
+from src.common.utils.file_manager import find_root_directory
 from version import PROGRAM_VERSION
 import sys
 import os
 
 
 # To read an INI file
-from scripts import config
+from src import config
 config.read(os.path.join(find_root_directory(), 'config.ini'))
 
 def main():
@@ -40,6 +38,7 @@ def main():
     This function sets up logging, determines the mode of operation (User or Developer),
     and initializes the main application window. It also handles any exceptions that
     occur during the execution of the program.
+
     Steps performed:
     1. Configures logging with a filename based on the program version.
     2. Logs the start of the script execution.
@@ -49,6 +48,7 @@ def main():
     6. Prints copyright information.
     7. Initializes the QApplication and the main window.
     8. Handles any exceptions by logging a critical error.
+
     Raises:
         Exception: If an error occurs during the execution of the application.
     """
