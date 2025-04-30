@@ -76,7 +76,7 @@ pyinstaller.exe --noconsole --clean --onefile \
 ├───resources                           # Visual and UI resources
 │   ├───system_tray                     # Icons and assets used in the system tray
 │   └───window                          # Files related to application windows
-└───scripts                             # Main source code of the program
+└───src                                 # Main source code of the program
     ├───business_logic                  # Core business logic of the application
     │                                   # Data processing, validation, business rules
     ├───common                          # Shared code between the main program and the service
@@ -177,7 +177,7 @@ pyinstaller.exe --noconsole --clean --onefile \
 ├───resources                           # Recursos visuales y de interfaz gráfica
 │   ├───system_tray                     # Iconos y recursos usados en la bandeja del sistema
 │   └───window                          # Archivos relacionados con las ventanas de la aplicación
-└───scripts                             # Código fuente principal del programa
+└───src                                 # Código fuente principal del programa
     ├───business_logic                  # Lógica de negocio principal de la aplicación
     │                                   # Procesamiento de datos, validación, reglas de negocio
     ├───common                          # Código compartido entre el programa principal y el servicio
