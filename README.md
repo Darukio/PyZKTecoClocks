@@ -28,6 +28,7 @@ All required packages are listed in `requirements.txt`.
 Set-ExecutionPolicy RemoteSigned
 # If needed, navigate to the project directory
 git clone https://github.com/Darukio/PyZKTecoClocks.git && cd PyZKTecoClocks
+git submodule update --remote --recursive
 python install.py  # Installs dependencies globally
 ```
 
@@ -128,6 +129,7 @@ Todos los paquetes necesarios están listados en `requirements.txt`.
 Set-ExecutionPolicy RemoteSigned
 # Si es necesario, navegar al directorio del proyecto
 git clone https://github.com/Darukio/PyZKTecoClocks.git && cd PyZKTecoClocks
+git submodule update --remote --recursive
 python install.py  # Instala las dependencias de forma global
 ```
 
